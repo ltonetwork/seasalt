@@ -53,10 +53,6 @@ public class ECDSA implements Signer {
         return new KeyPair(publicKey, privateKey);
     }
 
-    public byte[] privateToPublic(byte[] privateKey) {
-        return curve.getG().multiply(new BigInteger(privateKey)).getEncoded(true);
-    }
-
     public byte[] signDetached(byte[] msg, byte[] privateKey, Digest digest) {
         org.bouncycastle.crypto.Digest bouncyDigest = fetchDigest(digest);
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(bouncyDigest));
@@ -108,6 +104,10 @@ public class ECDSA implements Signer {
 
     public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
         return verify(msg, signature, keypair.getPublickey());
+    }
+
+    private byte[] privateToPublic(byte[] privateKey) {
+        return curve.getG().multiply(new BigInteger(privateKey)).getEncoded(true);
     }
 
     private org.bouncycastle.crypto.Digest fetchDigest(Digest digest) {
