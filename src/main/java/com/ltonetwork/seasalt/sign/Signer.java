@@ -4,35 +4,19 @@ import com.ltonetwork.seasalt.KeyPair;
 
 public interface Signer {
 
-    static KeyPair keyPair() {
-        return null;
-    }
+    KeyPair keyPair();
 
-    static KeyPair keyPairFromSeed(byte[] seed) {
-        return null;
-    }
+    KeyPair keyPairFromSeed(byte[] seed);
 
-    static KeyPair keyPairFromSecretKey(byte[] seed) {
-        return null;
-    }
+    KeyPair keyPairFromSecretKey(byte[] seed);
 
-    static byte[] getPublicKeyFor(byte[] privateKey) {
-        return new byte[0];
-    }
+    byte[] privateToPublic(byte[] privateKey);
 
-    static byte[] signDetached(byte[] msg, byte[] privateKey) {
-        return new byte[0];
-    }
+    byte[] signDetached(byte[] msg, byte[] privateKey);
 
-    static byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return new byte[0];
-    }
+    byte[] signDetached(byte[] msg, KeyPair keypair);
 
-    static boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
-        return false;
-    }
+    boolean verify(byte[] msg, byte[] signature, byte[] publicKey);
 
-    static boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        return false;
-    }
+    boolean verify(byte[] msg, byte[] signature, KeyPair keypair);
 }
