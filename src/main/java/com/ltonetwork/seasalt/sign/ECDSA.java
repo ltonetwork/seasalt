@@ -1,13 +1,11 @@
 package com.ltonetwork.seasalt.sign;
 
-import com.ltonetwork.seasalt.Curve;
 import com.ltonetwork.seasalt.Digest;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequenceGenerator;
 import org.bouncycastle.asn1.DLSequence;
-import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.SHA1Digest;
@@ -25,38 +23,41 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-public class Secp256k1 implements Signer {
-    static final X9ECParameters curve = SECNamedCurves.getByName("secp256k1");
-    static final ECDomainParameters domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
-    static final BigInteger HALF_CURVE_ORDER = curve.getN().shiftRight(1);
+public class ECDSA implements Signer {
+    final X9ECParameters curve;
+    final ECDomainParameters domain;
+    final BigInteger HALF_CURVE_ORDER;
 
-    public static KeyPair keyPair() {
+    public ECDSA(X9ECParameters curve) {
+        this.curve = curve;
+        this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
+        this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
+    }
+
+    public KeyPair keyPair() {
         SecureRandom srSeed = new SecureRandom();
         byte[] privateKey = generatePrivateKey(srSeed);
         byte[] publicKey = privateToPublic(privateKey);
-        return new KeyPair(publicKey, privateKey, Curve.SECP256k1);
+        return new KeyPair(publicKey, privateKey);
     }
 
-    public static KeyPair keyPairFromSeed(byte[] seed) {
+    public KeyPair keyPairFromSeed(byte[] seed) {
         SecureRandom srSeed = new SecureRandom(seed);
         byte[] privateKey = generatePrivateKey(srSeed);
         byte[] publicKey = privateToPublic(privateKey);
-        return new KeyPair(publicKey, privateKey, Curve.SECP256k1);
+        return new KeyPair(publicKey, privateKey);
     }
 
-    public static KeyPair keyPairFromSecretKey(byte[] privateKey) {
-        if (privateKey.length == 32 || privateKey.length == 33) {
-            byte[] publicKey = privateToPublic(privateKey);
-            return new KeyPair(publicKey, privateKey, Curve.SECP256k1);
-
-        } else throw new IllegalArgumentException("SECP256k1 private key should be 32 or 33 bytes long");
+    public KeyPair keyPairFromSecretKey(byte[] privateKey) {
+        byte[] publicKey = privateToPublic(privateKey);
+        return new KeyPair(publicKey, privateKey);
     }
 
-    public static byte[] privateToPublic(byte[] privateKey) {
+    public byte[] privateToPublic(byte[] privateKey) {
         return curve.getG().multiply(new BigInteger(privateKey)).getEncoded(true);
     }
 
-    public static byte[] signDetached(byte[] msg, byte[] privateKey, Digest digest) {
+    public byte[] signDetached(byte[] msg, byte[] privateKey, Digest digest) {
         org.bouncycastle.crypto.Digest bouncyDigest = fetchDigest(digest);
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(bouncyDigest));
         signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
@@ -73,21 +74,19 @@ public class Secp256k1 implements Signer {
         }
     }
 
-    public static byte[] signDetached(byte[] msg, KeyPair keypair, Digest digest) {
-        if (keypair.getCurve() == Curve.SECP256k1) return signDetached(msg, keypair.getPrivatekey(), digest);
-        else throw new IllegalArgumentException("Keypair curve missmatch");
+    public byte[] signDetached(byte[] msg, KeyPair keypair, Digest digest) {
+        return signDetached(msg, keypair.getPrivatekey(), digest);
     }
 
-    public static byte[] signDetached(byte[] msg, byte[] privateKey) {
+    public byte[] signDetached(byte[] msg, byte[] privateKey) {
         return signDetached(msg, privateKey, Digest.SHA256);
     }
 
-    public static byte[] signDetached(byte[] msg, KeyPair keypair) {
-        if (keypair.getCurve() == Curve.SECP256k1) return signDetached(msg, keypair.getPrivatekey(), Digest.SHA256);
-        else throw new IllegalArgumentException("Keypair curve missmatch");
+    public byte[] signDetached(byte[] msg, KeyPair keypair) {
+        return signDetached(msg, keypair.getPrivatekey(), Digest.SHA256);
     }
 
-    public static boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
+    public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
         ASN1InputStream asn1 = new ASN1InputStream(signature);
         try {
             ECDSASigner signer = new ECDSASigner();
@@ -107,12 +106,11 @@ public class Secp256k1 implements Signer {
         }
     }
 
-    public static boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        if (keypair.getCurve() == Curve.SECP256k1) return verify(msg, signature, keypair.getPublickey());
-        else throw new IllegalArgumentException("Keypair curve missmatch");
+    public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
+        return verify(msg, signature, keypair.getPublickey());
     }
 
-    private static org.bouncycastle.crypto.Digest fetchDigest(Digest digest) {
+    private org.bouncycastle.crypto.Digest fetchDigest(Digest digest) {
         switch (digest) {
             case SHA1:
                 return new SHA1Digest();
@@ -123,7 +121,7 @@ public class Secp256k1 implements Signer {
         }
     }
 
-    private static byte[] generatePrivateKey(SecureRandom seed) {
+    private byte[] generatePrivateKey(SecureRandom seed) {
         ECKeyPairGenerator generator = new ECKeyPairGenerator();
         ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(domain, seed);
         generator.init(keygenParams);
@@ -132,7 +130,7 @@ public class Secp256k1 implements Signer {
         return privParams.getD().toByteArray();
     }
 
-    private static BigInteger toCanonicalS(BigInteger s) {
+    private BigInteger toCanonicalS(BigInteger s) {
         if (s.compareTo(HALF_CURVE_ORDER) <= 0) {
             return s;
         } else {
