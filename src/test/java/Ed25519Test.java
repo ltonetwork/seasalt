@@ -16,7 +16,6 @@ public class Ed25519Test {
 
         Assertions.assertNotNull(myKeyPair.getPrivatekey());
         Assertions.assertNotNull(myKeyPair.getPublickey());
-        Assertions.assertEquals(myKeyPair.getCurve(), Curve.Ed25519);
     }
 
     @Test
@@ -29,7 +28,6 @@ public class Ed25519Test {
 
         Assertions.assertNotNull(myKeyPair.getPrivatekey());
         Assertions.assertNotNull(myKeyPair.getPublickey());
-        Assertions.assertEquals(myKeyPair.getCurve(), Curve.Ed25519);
     }
 
     @Test
@@ -40,7 +38,6 @@ public class Ed25519Test {
 
         Assertions.assertArrayEquals(sk, myKeyPair.getPrivatekey());
         Assertions.assertNotNull(myKeyPair.getPublickey());
-        Assertions.assertEquals(myKeyPair.getCurve(), Curve.Ed25519);
     }
 
     @Test
@@ -60,7 +57,7 @@ public class Ed25519Test {
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
 
         Assertions.assertDoesNotThrow(() -> {
-            Ed25519.signDetached(msg, kp, Digest.SHA256);
+            Ed25519.signDetached(msg, kp);
         });
     }
 
@@ -68,7 +65,7 @@ public class Ed25519Test {
     public void testVerify() {
         KeyPair kp = Ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = Ed25519.signDetached(msg, kp.getPrivatekey(), Digest.SHA256);
+        byte[] sig = Ed25519.signDetached(msg, kp.getPrivatekey());
 
         Assertions.assertTrue(Ed25519.verify(msg, sig, kp));
     }
@@ -77,7 +74,7 @@ public class Ed25519Test {
     public void testVerifyFail() {
         KeyPair kp = Ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = Ed25519.signDetached(msg, kp.getPrivatekey(), Digest.SHA256);
+        byte[] sig = Ed25519.signDetached(msg, kp.getPrivatekey());
 
         Assertions.assertFalse(Ed25519.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }
