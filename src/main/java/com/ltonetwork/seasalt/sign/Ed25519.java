@@ -1,24 +1,16 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.KeyPair;
-import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
-import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil;
-import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil;
 
-import java.math.BigInteger;
 import java.security.SecureRandom;
 
 public class Ed25519 implements Signer {
-    final X9ECParameters curve = SECNamedCurves.getByName("secp256k1");
-
     public KeyPair keyPair() {
         SecureRandom srSeed = new SecureRandom();
         byte[] privateKey = generatePrivateKey(srSeed);
@@ -40,7 +32,7 @@ public class Ed25519 implements Signer {
 
     public byte[] signDetached(byte[] msg, byte[] privateKey) {
         Ed25519Signer signer = new Ed25519Signer();
-        AsymmetricKeyParameter privateKeyParameters = OpenSSHPrivateKeyUtil.parsePrivateKeyBlob(privateKey);
+        Ed25519PrivateKeyParameters privateKeyParameters = new Ed25519PrivateKeyParameters(privateKey);
         signer.init(true, privateKeyParameters);
         signer.update(msg, 0, msg.length);
         return signer.generateSignature();
@@ -52,7 +44,7 @@ public class Ed25519 implements Signer {
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
         Ed25519Signer verifier = new Ed25519Signer();
-        AsymmetricKeyParameter publicKeyParameters = OpenSSHPublicKeyUtil.parsePublicKey(publicKey);
+        Ed25519PublicKeyParameters publicKeyParameters = new Ed25519PublicKeyParameters(publicKey);
         verifier.init(false, publicKeyParameters);
         verifier.update(msg, 0, msg.length);
         return verifier.verifySignature(signature);
@@ -64,8 +56,7 @@ public class Ed25519 implements Signer {
 
 
     private byte[] privateToPublic(byte[] privateKey) {
-        AsymmetricKeyParameter privateKeyParameters = OpenSSHPrivateKeyUtil.parsePrivateKeyBlob(privateKey);
-        Ed25519PrivateKeyParameters sk = (Ed25519PrivateKeyParameters) privateKeyParameters;
+        Ed25519PrivateKeyParameters sk = new Ed25519PrivateKeyParameters(privateKey);
 
         return sk.generatePublicKey().getEncoded();
     }
