@@ -8,7 +8,7 @@ public interface Signer {
 
     KeyPair keyPairFromSeed(byte[] seed);
 
-    KeyPair keyPairFromSecretKey(byte[] seed);
+    KeyPair keyPairFromSecretKey(byte[] privateKey);
 
     byte[] signDetached(byte[] msg, byte[] privateKey);
 
