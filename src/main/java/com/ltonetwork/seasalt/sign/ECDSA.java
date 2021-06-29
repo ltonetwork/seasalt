@@ -1,6 +1,5 @@
 package com.ltonetwork.seasalt.sign;
 
-import com.ltonetwork.seasalt.Digest;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -8,7 +7,7 @@ import org.bouncycastle.asn1.DERSequenceGenerator;
 import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.params.ECDomainParameters;
@@ -54,8 +53,7 @@ public class ECDSA implements Signer {
     }
 
     public byte[] signDetached(byte[] msg, byte[] privateKey, Digest digest) {
-        org.bouncycastle.crypto.Digest bouncyDigest = fetchDigest(digest);
-        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(bouncyDigest));
+        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(digest));
         signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
         BigInteger[] signature = signer.generateSignature(msg);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -75,11 +73,11 @@ public class ECDSA implements Signer {
     }
 
     public byte[] signDetached(byte[] msg, byte[] privateKey) {
-        return signDetached(msg, privateKey, Digest.SHA256);
+        return signDetached(msg, privateKey, new SHA256Digest());
     }
 
     public byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivatekey(), Digest.SHA256);
+        return signDetached(msg, keypair.getPrivatekey(), new SHA256Digest());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
@@ -108,17 +106,6 @@ public class ECDSA implements Signer {
 
     private byte[] privateToPublic(byte[] privateKey) {
         return curve.getG().multiply(new BigInteger(privateKey)).getEncoded(true);
-    }
-
-    private org.bouncycastle.crypto.Digest fetchDigest(Digest digest) {
-        switch (digest) {
-            case SHA1:
-                return new SHA1Digest();
-            case SHA256:
-                return new SHA256Digest();
-            default:
-                throw new IllegalArgumentException("Unknown digest for SECP256k1");
-        }
     }
 
     private byte[] generatePrivateKey(SecureRandom seed) {

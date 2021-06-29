@@ -1,7 +1,7 @@
-import com.ltonetwork.seasalt.Digest;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
+import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ public class ECDSASecp256k1Test {
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
 
         Assertions.assertDoesNotThrow(() -> {
-            SECP256k1.signDetached(msg, kp, Digest.SHA256);
+            SECP256k1.signDetached(msg, kp, new SHA256Digest());
         });
     }
 
@@ -62,7 +62,7 @@ public class ECDSASecp256k1Test {
     public void testVerify() {
         KeyPair kp = SECP256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), Digest.SHA256);
+        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), new SHA256Digest());
 
         Assertions.assertTrue(SECP256k1.verify(msg, sig, kp));
     }
@@ -71,7 +71,7 @@ public class ECDSASecp256k1Test {
     public void testVerifyFail() {
         KeyPair kp = SECP256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), Digest.SHA256);
+        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), new SHA256Digest());
 
         Assertions.assertFalse(SECP256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }
