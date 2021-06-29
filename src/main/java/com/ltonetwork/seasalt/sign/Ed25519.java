@@ -57,7 +57,6 @@ public class Ed25519 implements Signer {
 
     private byte[] privateToPublic(byte[] privateKey) {
         Ed25519PrivateKeyParameters sk = new Ed25519PrivateKeyParameters(privateKey);
-
         return sk.generatePublicKey().getEncoded();
     }
 
