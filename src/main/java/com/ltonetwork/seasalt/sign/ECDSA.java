@@ -5,6 +5,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequenceGenerator;
 import org.bouncycastle.asn1.DLSequence;
+import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.Digest;
@@ -31,6 +32,10 @@ public class ECDSA implements Signer {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
         this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
+    }
+
+    public ECDSA(String curve) {
+        this(SECNamedCurves.getByName(curve));
     }
 
     public KeyPair keyPair() {
