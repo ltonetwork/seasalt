@@ -121,10 +121,6 @@ public class ECDSA implements Signer {
     }
 
     private BigInteger toCanonicalS(BigInteger s) {
-        if (s.compareTo(HALF_CURVE_ORDER) <= 0) {
-            return s;
-        } else {
-            return curve.getN().subtract(s);
-        }
+        return s.compareTo(HALF_CURVE_ORDER) <= 0 ? s : curve.getN().subtract(s);
     }
 }

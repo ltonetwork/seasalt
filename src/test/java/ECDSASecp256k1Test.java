@@ -1,7 +1,6 @@
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
