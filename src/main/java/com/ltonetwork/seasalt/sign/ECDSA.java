@@ -27,15 +27,21 @@ public class ECDSA implements Signer {
     final X9ECParameters curve;
     final ECDomainParameters domain;
     final BigInteger HALF_CURVE_ORDER;
+    final Digest digest;
 
-    public ECDSA(X9ECParameters curve) {
+    public ECDSA(X9ECParameters curve, Digest digest) {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
         this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
+        this.digest = digest;
+    }
+
+    public ECDSA(X9ECParameters curve) {
+        this(curve, new SHA256Digest());
     }
 
     public ECDSA(String curve) {
-        this(SECNamedCurves.getByName(curve));
+        this(SECNamedCurves.getByName(curve), new SHA256Digest());
     }
 
     public KeyPair keyPair() {
@@ -57,8 +63,8 @@ public class ECDSA implements Signer {
         return new KeyPair(publicKey, privateKey);
     }
 
-    public byte[] signDetached(byte[] msg, byte[] privateKey, Digest digest) {
-        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(digest));
+    public byte[] signDetached(byte[] msg, byte[] privateKey) {
+        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(this.digest));
         signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
         BigInteger[] signature = signer.generateSignature(msg);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -73,16 +79,8 @@ public class ECDSA implements Signer {
         }
     }
 
-    public byte[] signDetached(byte[] msg, KeyPair keypair, Digest digest) {
-        return signDetached(msg, keypair.getPrivatekey(), digest);
-    }
-
-    public byte[] signDetached(byte[] msg, byte[] privateKey) {
-        return signDetached(msg, privateKey, new SHA256Digest());
-    }
-
     public byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivatekey(), new SHA256Digest());
+        return signDetached(msg, keypair.getPrivatekey());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {

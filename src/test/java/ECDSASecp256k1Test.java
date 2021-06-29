@@ -54,7 +54,7 @@ public class ECDSASecp256k1Test {
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
 
         Assertions.assertDoesNotThrow(() -> {
-            SECP256k1.signDetached(msg, kp, new SHA256Digest());
+            SECP256k1.signDetached(msg, kp);
         });
     }
 
@@ -62,7 +62,7 @@ public class ECDSASecp256k1Test {
     public void testVerify() {
         KeyPair kp = SECP256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), new SHA256Digest());
+        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey());
 
         Assertions.assertTrue(SECP256k1.verify(msg, sig, kp));
     }
@@ -71,7 +71,7 @@ public class ECDSASecp256k1Test {
     public void testVerifyFail() {
         KeyPair kp = SECP256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey(), new SHA256Digest());
+        byte[] sig = SECP256k1.signDetached(msg, kp.getPrivatekey());
 
         Assertions.assertFalse(SECP256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }
