@@ -1,3 +1,5 @@
+package sign;
+
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import org.junit.jupiter.api.Assertions;
