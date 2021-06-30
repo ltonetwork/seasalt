@@ -1,5 +1,6 @@
 package com.ltonetwork.seasalt.sign;
 
+import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
@@ -30,16 +31,36 @@ public class Ed25519 implements Signer {
         return new KeyPair(publicKey, privateKey);
     }
 
-    public byte[] signDetached(byte[] msg, byte[] privateKey) {
+    public KeyPair keyPairFromSecretKey(Binary privateKey) {
+        return keyPairFromSecretKey(privateKey.getBytes());
+    }
+
+    public Binary signDetached(byte[] msg, byte[] privateKey) {
         Ed25519Signer signer = new Ed25519Signer();
         Ed25519PrivateKeyParameters privateKeyParameters = new Ed25519PrivateKeyParameters(privateKey);
         signer.init(true, privateKeyParameters);
         signer.update(msg, 0, msg.length);
-        return signer.generateSignature();
+        return new Binary(signer.generateSignature());
     }
 
-    public byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivatekey());
+    public Binary signDetached(byte[] msg, Binary privateKey) {
+        return signDetached(msg, privateKey.getBytes());
+    }
+
+    public Binary signDetached(byte[] msg, KeyPair keypair) {
+        return signDetached(msg, keypair.getPrivateKey().getBytes());
+    }
+
+    public Binary signDetached(String msg, byte[] privateKey) {
+        return signDetached(msg.getBytes(), privateKey);
+    }
+
+    public Binary signDetached(String msg, KeyPair keypair) {
+        return signDetached(msg.getBytes(), keypair.getPrivateKey().getBytes());
+    }
+
+    public Binary signDetached(String msg, Binary privateKey) {
+        return signDetached(msg.getBytes(), privateKey.getBytes());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
@@ -51,7 +72,71 @@ public class Ed25519 implements Signer {
     }
 
     public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        return verify(msg, signature, keypair.getPublickey());
+        return verify(msg, signature, keypair.getPublicKey().getBytes());
+    }
+
+    public boolean verify(byte[] msg, byte[] signature, Binary publicKey) {
+        return verify(msg, signature, publicKey.getBytes());
+    }
+
+    public boolean verify(byte[] msg, Binary signature, byte[] publicKey) {
+        return verify(msg, signature.getBytes(), publicKey);
+    }
+
+    public boolean verify(byte[] msg, Binary signature, Binary publicKey) {
+        return verify(msg, signature.getBytes(), publicKey.getBytes());
+    }
+
+    public boolean verify(byte[] msg, Binary signature, KeyPair keypair) {
+        return verify(msg, signature.getBytes(), keypair.getPublicKey().getBytes());
+    }
+
+    public boolean verify(Binary msg, byte[] signature, byte[] publicKey) {
+        return verify(msg.getBytes(), signature, publicKey);
+    }
+
+    public boolean verify(Binary msg, byte[] signature, Binary publicKey) {
+        return verify(msg.getBytes(), signature, publicKey.getBytes());
+    }
+
+    public boolean verify(Binary msg, byte[] signature, KeyPair keypair) {
+        return verify(msg, signature, keypair.getPublicKey().getBytes());
+    }
+
+    public boolean verify(Binary msg, Binary signature, byte[] publicKey) {
+        return verify(msg.getBytes(), signature.getBytes(), publicKey);
+    }
+
+    public boolean verify(Binary msg, Binary signature, Binary publicKey) {
+        return verify(msg.getBytes(), signature.getBytes(), publicKey.getBytes());
+    }
+
+    public boolean verify(Binary msg, Binary signature, KeyPair keypair) {
+        return verify(msg.getBytes(), signature.getBytes(), keypair.getPublicKey().getBytes());
+    }
+
+    public boolean verify(String msg, byte[] signature, byte[] publicKey) {
+        return verify(msg.getBytes(), signature, publicKey);
+    }
+
+    public boolean verify(String msg, byte[] signature, Binary publicKey) {
+        return verify(msg.getBytes(), signature, publicKey.getBytes());
+    }
+
+    public boolean verify(String msg, byte[] signature, KeyPair keypair) {
+        return verify(msg.getBytes(), signature, keypair.getPublicKey().getBytes());
+    }
+
+    public boolean verify(String msg, Binary signature, byte[] publicKey) {
+        return verify(msg.getBytes(), signature.getBytes(), publicKey);
+    }
+
+    public boolean verify(String msg, Binary signature, Binary publicKey) {
+        return verify(msg.getBytes(), signature.getBytes(), publicKey.getBytes());
+    }
+
+    public boolean verify(String msg, Binary signature, KeyPair keypair) {
+        return verify(msg.getBytes(), signature.getBytes(), keypair.getPublicKey().getBytes());
     }
 
 

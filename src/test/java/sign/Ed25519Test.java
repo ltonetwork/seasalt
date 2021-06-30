@@ -1,5 +1,6 @@
 package sign;
 
+import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import org.junit.jupiter.api.Assertions;
@@ -22,8 +23,8 @@ public class Ed25519Test {
     public void testKeyPair() {
         KeyPair myKeyPair = ed25519.keyPair();
 
-        Assertions.assertNotNull(myKeyPair.getPrivatekey());
-        Assertions.assertNotNull(myKeyPair.getPublickey());
+        Assertions.assertNotNull(myKeyPair.getPrivateKey());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
@@ -34,18 +35,18 @@ public class Ed25519Test {
 
         KeyPair myKeyPair = ed25519.keyPairFromSeed(b);
 
-        Assertions.assertNotNull(myKeyPair.getPrivatekey());
-        Assertions.assertNotNull(myKeyPair.getPublickey());
+        Assertions.assertNotNull(myKeyPair.getPrivateKey());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
     public void testKeyPairFromSecretKey() {
-        byte[] sk = ed25519.keyPair().getPrivatekey();
+        Binary sk = ed25519.keyPair().getPrivateKey();
 
         KeyPair myKeyPair = ed25519.keyPairFromSecretKey(sk);
 
-        Assertions.assertArrayEquals(sk, myKeyPair.getPrivatekey());
-        Assertions.assertNotNull(myKeyPair.getPublickey());
+        Assertions.assertArrayEquals(sk.getBytes(), myKeyPair.getPrivateKey().getBytes());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
@@ -73,7 +74,7 @@ public class Ed25519Test {
     public void testVerify() {
         KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = ed25519.signDetached(msg, kp.getPrivatekey());
+        Binary sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
         Assertions.assertTrue(ed25519.verify(msg, sig, kp));
     }
@@ -82,7 +83,7 @@ public class Ed25519Test {
     public void testVerifyFail() {
         KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        byte[] sig = ed25519.signDetached(msg, kp.getPrivatekey());
+        Binary sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
         Assertions.assertFalse(ed25519.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }

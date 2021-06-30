@@ -1,18 +1,18 @@
-package com.ltonetwork.seasalt.hash;
+package com.ltonetwork.seasalt;
 
 import org.apache.commons.codec.binary.Hex;
 import org.bitcoinj.core.Base58;
 
 import java.util.Base64;
 
-public class Digest {
+public class Binary {
     byte[] digest;
 
-    public Digest(byte[] digest) {
+    public Binary(byte[] digest) {
         this.digest = digest;
     }
 
-    public byte[] getBinary() {
+    public byte[] getBytes() {
         return digest;
     }
 
