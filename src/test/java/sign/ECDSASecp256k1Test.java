@@ -1,3 +1,5 @@
+package sign;
+
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
