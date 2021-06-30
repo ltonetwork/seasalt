@@ -152,5 +152,5 @@ Create a `Hasher` object, using `Keccak-384` algorithm, hash a message and encod
 
 ```java
 Hasher keccak384 = new Hasher("Keccak-384");
-String myKeccak384Base58EncodedDigest = sha256.hash("my message").getBase58();
+String myKeccak384Base58EncodedDigest = keccak384.hash("my message").getBase58();
 ```
