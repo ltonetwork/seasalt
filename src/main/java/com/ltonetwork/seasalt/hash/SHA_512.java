@@ -7,13 +7,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 
-public class SHA384 implements Hasher {
+public class SHA_512 implements Hasher {
 
     MessageDigest md;
 
-    public SHA384() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public SHA_512() throws NoSuchAlgorithmException, NoSuchProviderException {
         Security.addProvider(new BouncyCastleProvider());
-        md = MessageDigest.getInstance("SHA-384", "BC");
+        md = MessageDigest.getInstance("SHA-512", "BC");
     }
 
     public Digest hash(byte[] msg) {

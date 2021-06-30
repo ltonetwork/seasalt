@@ -7,11 +7,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 
-public class SHA256 implements Hasher {
+public class SHA_256 implements Hasher {
 
     MessageDigest md;
 
-    public SHA256() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public SHA_256() throws NoSuchAlgorithmException, NoSuchProviderException {
         Security.addProvider(new BouncyCastleProvider());
         md = MessageDigest.getInstance("SHA-256", "BC");
     }
