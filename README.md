@@ -5,23 +5,25 @@
 cryptography and hashing using [Bouncy Castle](https://www.bouncycastle.org/). \\
 _Secret key cryptography is **not** supported. PRs to add secret key cryptography to this library will be accepted._
 
-## Digital signature schemes supported
+## Public key signature algoritms
 
-- ECDSA curves listed [here](https://people.eecs.berkeley.edu/~jonah/javadoc/org/bouncycastle/asn1/sec/SECNamedCurves.html).
-  Different digest hash algorithms for them are possible as well. However, note that only `secp256k1` and `secp256r1` are fully tested.
 - Ed25519
+- ECDSA
+  - secp256r1 (aka NIST P-256)
+  - secp256k1
+  - More curves listed [here](https://people.eecs.berkeley.edu/~jonah/javadoc/org/bouncycastle/asn1/sec/SECNamedCurves.html)
 
-## Hashing algorithms supported
+## Hashing algorithms
 
-- SHA1, SHA-256, SHA-384, SHA-512, SHA3-256, SHA3-384, SHA3-512
-- Blake2b-256, Blake2b-384, Blake2b-512
-- Keccak-256, Keccak-384, Keccak-512
+- SHA1
+- SHA2 (SHA-256, SHA-384, SHA-512)
+- SHA3 (SHA3-256, SHA3-384, SHA3-512)
+- Blake2b (Blake2b-256, Blake2b-384, Blake2b-512)
+- Keccak (Keccak-256, Keccak-384, Keccak-512)
 
 # Usage
 
-## Signing
-
-Currently, there are only detached signatures supported.</br></br>
+## Public key signatures
 
 `KeyPair keyPair()`\
 Create a random KeyPair.
@@ -44,19 +46,24 @@ Verify a signature using a public key.
 `boolean verify(byte[] msg, byte[] signature, KeyPair keypair)`\
 Verify a signature using a KeyPair.
 
+
+_A `sign` method which prepends the message to the signature, compatible with
+[libsodium's combined mode](https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#combined-mode),
+is not yet supported._
+
 ### ECDSA
 
-`ECDSA(X9ECParameters curve, Digest digest)`\
-Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html)
-to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
-to specify the hash algorithm.
+`ECDSA(String curve)`\
+Create an ECDSA object specifying the curve name.
 
 `ECDSA(X9ECParameters curve)`\
 Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html)
 to specify the curve and default `SHA256` hash algorithm.
 
-`ECDSA(String curve)`\
-Create an ECDSA object using String to specify the curve.
+`ECDSA(X9ECParameters curve, Digest digest)`\
+Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html)
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
+to specify the hash algorithm.
 
 ### Ed25519
 
@@ -71,10 +78,10 @@ Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest,
 ECDSA secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
 
 KeyPair myKeyPair = secp256k1.keyPair();
-byte[] myMessage = new byte[]{1, 2, 3};
+byte[] myMessage = "Hello".getBytes();
 byte[] mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
-        secp256k1.verify(myMessage, mySignature, myKeyPair) // True
+secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
 
 Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.
@@ -94,7 +101,7 @@ Create an `Ed25519` object, create a KeyPair, sign a message and verify it.
 Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
-byte[] myMessage = new byte[]{1, 2, 3};
+byte[] myMessage = "Hello".getBytes();
 byte[] mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
