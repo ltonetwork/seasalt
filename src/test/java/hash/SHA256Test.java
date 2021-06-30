@@ -1,7 +1,6 @@
 package hash;
 
 import com.ltonetwork.seasalt.hash.SHA256;
-import org.apache.commons.codec.DecoderException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,35 +39,5 @@ public class SHA256Test {
     @Test
     public void testFromStringToHex() {
         Assertions.assertEquals(hexTest, sha256.hashToHex("test"));
-    }
-
-    @Test
-    public void testVerifyByte() {
-        Assertions.assertTrue(sha256.verify("test".getBytes(), byteTest));
-    }
-
-    @Test
-    public void testVerifyString() {
-        Assertions.assertTrue(sha256.verify("test", byteTest));
-    }
-
-    @Test
-    public void testVerifyByteFromHex() throws DecoderException {
-        Assertions.assertTrue(sha256.verifyFromHex("test".getBytes(), hexTest));
-    }
-
-    @Test
-    public void testVerifyByteFromHexFail() throws DecoderException {
-        Assertions.assertFalse(sha256.verifyFromHex("fail".getBytes(), hexTest));
-    }
-
-    @Test
-    public void testVerifyStringFromHex() throws DecoderException {
-        Assertions.assertTrue(sha256.verifyFromHex("test", hexTest));
-    }
-
-    @Test
-    public void testVerifyStringFromHexFail() throws DecoderException {
-        Assertions.assertFalse(sha256.verifyFromHex("fail", hexTest));
     }
 }
