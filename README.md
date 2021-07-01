@@ -48,9 +48,9 @@ is not yet supported._
 
 ### ECDSA
 
-##### `ECDSA(X9ECParameters|String curve, Binary digest = SHA256Binary())`
+##### `ECDSA(X9ECParameters|String curve, Digest digest = SHA256Digest())`
 Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
-to specify the curve and [Bouncy Castle's Binary](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Binary.html)
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
 to specify the hash algorithm, with default one being SHA-256.
 
 ### Ed25519
