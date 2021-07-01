@@ -67,7 +67,7 @@ ECDSA secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
 
 KeyPair myKeyPair = secp256k1.keyPair();
 String myMessage = "Hello";
-byte[] mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+Binary mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
@@ -90,7 +90,7 @@ Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
 String myMessage = "Hello";
-byte[] mySignature = ed25519.signDetached(myMessage, myKeyPair);
+Binary mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
 ```
