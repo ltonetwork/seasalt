@@ -30,10 +30,10 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 ##### `KeyPair keyPair()`
 Create a random KeyPair.
 
-##### `KeyPair keyPairFromSeed(byte[] seed)`
+##### `KeyPair keyPairFromSeed(byte[]|Binary seed)`
 Create a KeyPair from seed.
 
-##### `KeyPair keyPairFromSecretKey(byte[] privateKey)`
+##### `KeyPair keyPairFromSecretKey(byte[]|Binary privateKey)`
 Create a KeyPair from a private key.
 
 ##### `Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
@@ -97,10 +97,10 @@ ed25519.verify(myMessage, mySignature, myKeyPair) // True
 
 ## Hashing
 
-`Hasher(MessageDigest|String algorithm)`\
+##### `Hasher(MessageDigest|String algorithm)`
 Create a Hasher object, using [Java's MessageDigest](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageDigest.html) or using String to specify the algortihm.
 
-`Binary hash(byte[]|String msg)`\
+##### `Binary hash(byte[]|String msg)`
 Hash a byte array or a String.
 
 ### Example usages
@@ -124,20 +124,29 @@ String myKeccak384Base58EncodedDigest = keccak384.hash("Hello").getBase58();
 
 ### Binary
 
-##### `Binary(byte[] binary)`
+##### `Binary(byte[] bytes)`
 Create a Binary object, using byte array.
 
-##### `byte[] getBinary()`
-Get raw byte array encoding of the Binary.
+##### `Binary Binary::fromHex(String hex)`
+Create a Binary object, using a hexidecimal value
+
+##### `Binary Binary::fromBase58(String base58)`
+Create a Binary object, using a base58 encoded value
+
+##### `Binary Binary::fromBase64(String base64)`
+Create a Binary object, using a base64 encoded value
+
+##### `byte[] getBytes()`
+Get raw byte array of the Binary.
 
 ##### `String getHex()`
-Get hex encoding of the Binary.
+Get hexidecimal representation of the Binary.
 
 ##### `String getBase58()`
-Get base58 encoding of the Binary.
+Get base58 encoded value of the Binary.
 
 ##### `String getBase64()`
-Get base64 encoding of the Binary.
+Get base64 encoded value of the Binary.
 
 ### KeyPair
 
@@ -145,7 +154,7 @@ Get base64 encoding of the Binary.
 Create a KeyPair object, using a byte array or a Binary representation of the keys.
 
 ##### `Binary getPublicKey()`
-Get Binary of the public key.
+Get the public key.
 
 ##### `Binary getPrivateKey()`
-Get Binary of the private key.
+Get the private key.
