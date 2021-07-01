@@ -77,7 +77,7 @@ Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, 
 
 ```java
 X9ECParameters curve = SECNamedCurves.getByName("secp256r1")
-ECDSA secp256r1 = new ECDSA(curve, new SHA512Binary());
+ECDSA secp256r1 = new ECDSA(curve, new SHA512Digest());
 
 byte[] mySecretKey = Base64.getDecoder().decode("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
 
@@ -98,8 +98,8 @@ ed25519.verify(myMessage, mySignature, myKeyPair) // True
 
 ## Hashing
 
-`Hasher(MessageBinary|String algorithm)`\
-Create a Hasher object, using [Java's MessageBinary](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageBinary.html) or using String to specify the algortihm.
+`Hasher(MessageDigest|String algorithm)`\
+Create a Hasher object, using [Java's MessageDigest](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageDigest.html) or using String to specify the algortihm.
 
 `Binary hash(byte[]|String msg)`\
 Hash a byte array or a String.
