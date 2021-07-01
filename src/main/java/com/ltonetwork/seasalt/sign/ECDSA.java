@@ -92,6 +92,18 @@ public class ECDSA implements Signer {
         return signDetached(msg, privateKey.getBytes());
     }
 
+    public Binary signDetached(Binary msg, byte[] privateKey) {
+        return signDetached(msg.getBytes(), privateKey);
+    }
+
+    public Binary signDetached(Binary msg, KeyPair keypair) {
+        return signDetached(msg.getBytes(), keypair.getPrivateKey().getBytes());
+    }
+
+    public Binary signDetached(Binary msg, Binary privateKey) {
+        return signDetached(msg.getBytes(), privateKey.getBytes());
+    }
+
     public Binary signDetached(String msg, byte[] privateKey) {
         return signDetached(msg.getBytes(), privateKey);
     }

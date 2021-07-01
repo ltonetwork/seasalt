@@ -19,6 +19,12 @@ public interface Signer {
 
     Binary signDetached(byte[] msg, Binary privateKey);
 
+    Binary signDetached(Binary msg, byte[] privateKey);
+
+    Binary signDetached(Binary msg, KeyPair keypair);
+
+    Binary signDetached(Binary msg, Binary privateKey);
+
     Binary signDetached(String msg, byte[] privateKey);
 
     Binary signDetached(String msg, KeyPair keypair);
