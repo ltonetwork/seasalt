@@ -66,7 +66,7 @@ Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest,
 ECDSA secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
 
 KeyPair myKeyPair = secp256k1.keyPair();
-byte[] myMessage = "Hello".getBytes();
+String myMessage = "Hello";
 byte[] mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
@@ -78,7 +78,7 @@ Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, 
 X9ECParameters curve = SECNamedCurves.getByName("secp256r1")
 ECDSA secp256r1 = new ECDSA(curve, new SHA512Digest());
 
-byte[] mySecretKey = Base64.getDecoder().decode("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
+Binary mySecretKey = Binary.fromBase64("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
 
 KeyPair myKeyPair = secp256r1.keyPairFromSecretKey(mySecretKey);
 ```
@@ -89,7 +89,7 @@ Create an `Ed25519` object, create a KeyPair, sign a message and verify it.
 Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
-byte[] myMessage = "Hello".getBytes();
+String myMessage = "Hello";
 byte[] mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
@@ -109,7 +109,7 @@ Create a `Hasher` object, using `SHA-256` algorithm, hash a message and encode i
 
 ```java
 Hasher sha256 = new Hasher("SHA-256");
-Binary mySHA256Digest = sha256.hash("my message");
+Binary mySHA256Digest = sha256.hash("Hello");
 String mySHA256HexEncodedBinary = mySHA256Digest.getHex();
 ```
 
@@ -117,7 +117,7 @@ Create a `Hasher` object, using `Keccak-384` algorithm, hash a message and encod
 
 ```java
 Hasher keccak384 = new Hasher("Keccak-384");
-String myKeccak384Base58EncodedDigest = keccak384.hash("my message").getBase58();
+String myKeccak384Base58EncodedDigest = keccak384.hash("Hello").getBase58();
 ```
 
 ## Helper Types
