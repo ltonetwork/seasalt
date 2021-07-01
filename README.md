@@ -63,7 +63,7 @@ Create an ed25519 object.
 Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest, create a KeyPair, sign a message and verify it.
 
 ```java
-ECDSA secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
+ECDSA secp256k1 = new ECDSA("secp256k1");
 
 KeyPair myKeyPair = secp256k1.keyPair();
 String myMessage = "Hello";
@@ -75,8 +75,9 @@ secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.
 
 ```java
-X9ECParameters curve = SECNamedCurves.getByName("secp256r1")
-ECDSA secp256r1 = new ECDSA(curve, new SHA512Digest());
+X9ECParameters curve = SECNamedCurves.getByName("secp256r1");
+Digest digest = new SHA512Digest();
+ECDSA secp256r1 = new ECDSA(curve, digest);
 
 Binary mySecretKey = Binary.fromBase64("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
 
