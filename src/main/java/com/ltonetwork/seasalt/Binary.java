@@ -1,5 +1,6 @@
 package com.ltonetwork.seasalt;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.bitcoinj.core.Base58;
 
@@ -26,5 +27,17 @@ public class Binary {
 
     public String getBase64() {
         return Base64.getEncoder().encodeToString(digest);
+    }
+
+    public static byte[] fromHex(String hex) throws DecoderException {
+        return Hex.decodeHex(hex);
+    }
+
+    public static byte[] fromBase58(String base58) {
+        return Base58.decode(base58);
+    }
+
+    public static byte[] fromBase64(String base64) {
+        return Base64.getDecoder().decode(base64);
     }
 }
