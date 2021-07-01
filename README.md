@@ -4,8 +4,7 @@
 
 [NaCl](https://nacl.cr.yp.to/) and [libsodium](https://libsodium.gitbook.io/doc/) compatible library for public-key
 cryptography and hashing using [Bouncy Castle](https://www.bouncycastle.org/).
-\
-\
+	
 _Secret key cryptography is **not** supported. PRs to add secret key cryptography to this library will be accepted._
 
 ## Public key signature algoritms
@@ -28,19 +27,19 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 
 ## Public key signatures
 
-`KeyPair keyPair()`\
+##### `KeyPair keyPair()`
 Create a random KeyPair.
 
-`KeyPair keyPairFromSeed(byte[] seed)`\
+##### `KeyPair keyPairFromSeed(byte[] seed)`
 Create a KeyPair from seed.
 
-`KeyPair keyPairFromSecretKey(byte[] privateKey)`\
+##### `KeyPair keyPairFromSecretKey(byte[] privateKey)`
 Create a KeyPair from a private key.
 
-`Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`\
+##### `Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
 Sign a message using a private key or a KeyPair. The return value is the digital signature of type Binary.
 
-`boolean verify(byte[]|Binary|String msg, byte[]|Binary|KeyPair signature, byte[]|Binary publicKey)`\
+##### `boolean verify(byte[]|Binary|String msg, byte[]|Binary|KeyPair signature, byte[]|Binary publicKey)`
 Verify a signature using a public key or a KeyPair.
 
 _A `sign` method which prepends the message to the signature, compatible with
@@ -49,14 +48,14 @@ is not yet supported._
 
 ### ECDSA
 
-`ECDSA(X9ECParameters|String curve, Binary digest = SHA256Binary())`\
+##### `ECDSA(X9ECParameters|String curve, Binary digest = SHA256Binary())`
 Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
 to specify the curve and [Bouncy Castle's Binary](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Binary.html)
 to specify the hash algorithm, with default one being SHA-256.
 
 ### Ed25519
 
-`Ed25519()`\
+##### `Ed25519()`
 Create an ed25519 object.
 
 ### Example usages
@@ -125,28 +124,28 @@ String myKeccak384Base58EncodedDigest = keccak384.hash("my message").getBase58()
 
 ### Binary
 
-`Binary(byte[] binary)`\
+##### `Binary(byte[] binary)`
 Create a Binary object, using byte array.
 
-`byte[] getBinary()`\
+##### `byte[] getBinary()`
 Get raw byte array encoding of the Binary.
 
-`String getHex()`\
+##### `String getHex()`
 Get hex encoding of the Binary.
 
-`String getBase58()`\
+##### `String getBase58()`
 Get base58 encoding of the Binary.
 
-`String getBase64()`\
+##### `String getBase64()`
 Get base64 encoding of the Binary.
 
 ### KeyPair
 
-`KeyPair(byte[]|Binary publicKey, byte[]|Binary privateKey)`\
+##### `KeyPair(byte[]|Binary publicKey, byte[]|Binary privateKey)`
 Create a KeyPair object, using a byte array or a Binary representation of the keys.
 
-`Binary getPublicKey()`\
+##### `Binary getPublicKey()`
 Get Binary of the public key.
 
-`Binary getPrivateKey()`\
+##### `Binary getPrivateKey()`
 Get Binary of the private key.
