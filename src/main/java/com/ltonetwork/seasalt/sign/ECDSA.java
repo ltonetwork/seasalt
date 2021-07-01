@@ -84,38 +84,6 @@ public class ECDSA implements Signer {
         }
     }
 
-    public Binary signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivateKey().getBytes());
-    }
-
-    public Binary signDetached(byte[] msg, Binary privateKey) {
-        return signDetached(msg, privateKey.getBytes());
-    }
-
-    public Binary signDetached(Binary msg, byte[] privateKey) {
-        return signDetached(msg.getBytes(), privateKey);
-    }
-
-    public Binary signDetached(Binary msg, KeyPair keypair) {
-        return signDetached(msg.getBytes(), keypair.getPrivateKey().getBytes());
-    }
-
-    public Binary signDetached(Binary msg, Binary privateKey) {
-        return signDetached(msg.getBytes(), privateKey.getBytes());
-    }
-
-    public Binary signDetached(String msg, byte[] privateKey) {
-        return signDetached(msg.getBytes(), privateKey);
-    }
-
-    public Binary signDetached(String msg, KeyPair keypair) {
-        return signDetached(msg.getBytes(), keypair.getPrivateKey().getBytes());
-    }
-
-    public Binary signDetached(String msg, Binary privateKey) {
-        return signDetached(msg.getBytes(), privateKey.getBytes());
-    }
-
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
         try (ASN1InputStream asn1 = new ASN1InputStream(signature)) {
             ECDSASigner signer = new ECDSASigner();
@@ -129,75 +97,6 @@ public class ECDSA implements Signer {
             return false;
         }
     }
-
-    public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        return verify(msg, signature, keypair.getPublicKey().getBytes());
-    }
-
-    public boolean verify(byte[] msg, byte[] signature, Binary publicKey) {
-        return verify(msg, signature, publicKey.getBytes());
-    }
-
-    public boolean verify(byte[] msg, Binary signature, byte[] publicKey) {
-        return verify(msg, signature.getBytes(), publicKey);
-    }
-
-    public boolean verify(byte[] msg, Binary signature, Binary publicKey) {
-        return verify(msg, signature.getBytes(), publicKey.getBytes());
-    }
-
-    public boolean verify(byte[] msg, Binary signature, KeyPair keypair) {
-        return verify(msg, signature.getBytes(), keypair.getPublicKey().getBytes());
-    }
-
-    public boolean verify(Binary msg, byte[] signature, byte[] publicKey) {
-        return verify(msg.getBytes(), signature, publicKey);
-    }
-
-    public boolean verify(Binary msg, byte[] signature, Binary publicKey) {
-        return verify(msg.getBytes(), signature, publicKey.getBytes());
-    }
-
-    public boolean verify(Binary msg, byte[] signature, KeyPair keypair) {
-        return verify(msg, signature, keypair.getPublicKey().getBytes());
-    }
-
-    public boolean verify(Binary msg, Binary signature, byte[] publicKey) {
-        return verify(msg.getBytes(), signature.getBytes(), publicKey);
-    }
-
-    public boolean verify(Binary msg, Binary signature, Binary publicKey) {
-        return verify(msg.getBytes(), signature.getBytes(), publicKey.getBytes());
-    }
-
-    public boolean verify(Binary msg, Binary signature, KeyPair keypair) {
-        return verify(msg.getBytes(), signature.getBytes(), keypair.getPublicKey().getBytes());
-    }
-
-    public boolean verify(String msg, byte[] signature, byte[] publicKey) {
-        return verify(msg.getBytes(), signature, publicKey);
-    }
-
-    public boolean verify(String msg, byte[] signature, Binary publicKey) {
-        return verify(msg.getBytes(), signature, publicKey.getBytes());
-    }
-
-    public boolean verify(String msg, byte[] signature, KeyPair keypair) {
-        return verify(msg.getBytes(), signature, keypair.getPublicKey().getBytes());
-    }
-
-    public boolean verify(String msg, Binary signature, byte[] publicKey) {
-        return verify(msg.getBytes(), signature.getBytes(), publicKey);
-    }
-
-    public boolean verify(String msg, Binary signature, Binary publicKey) {
-        return verify(msg.getBytes(), signature.getBytes(), publicKey.getBytes());
-    }
-
-    public boolean verify(String msg, Binary signature, KeyPair keypair) {
-        return verify(msg.getBytes(), signature.getBytes(), keypair.getPublicKey().getBytes());
-    }
-
 
     private byte[] privateToPublic(byte[] privateKey) {
         return curve.getG().multiply(new BigInteger(privateKey)).getEncoded(true);
