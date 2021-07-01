@@ -7,26 +7,26 @@ import org.bitcoinj.core.Base58;
 import java.util.Base64;
 
 public class Binary {
-    byte[] digest;
+    byte[] bytes;
 
-    public Binary(byte[] digest) {
-        this.digest = digest;
+    public Binary(byte[] bytes) {
+        this.bytes = bytes;
     }
 
     public byte[] getBytes() {
-        return digest;
+        return bytes;
     }
 
     public String getHex() {
-        return Hex.encodeHexString(digest);
+        return Hex.encodeHexString(bytes);
     }
 
     public String getBase58() {
-        return Base58.encode(digest);
+        return Base58.encode(bytes);
     }
 
     public String getBase64() {
-        return Base64.getEncoder().encodeToString(digest);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     public static Binary fromHex(String hex) throws DecoderException {
