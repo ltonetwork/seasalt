@@ -1,8 +1,10 @@
 ![github-banner](https://user-images.githubusercontent.com/100821/122219870-25e0fd80-ceb0-11eb-8e51-906bbbb27c92.png)
 
 # SeaSalt
+
 [NaCl](https://nacl.cr.yp.to/) and [libsodium](https://libsodium.gitbook.io/doc/) compatible library for public-key
-cryptography and hashing using [Bouncy Castle](https://www.bouncycastle.org/). \\
+cryptography and hashing using [Bouncy Castle](https://www.bouncycastle.org/).
+	
 _Secret key cryptography is **not** supported. PRs to add secret key cryptography to this library will be accepted._
 
 ## Public key signature algoritms
@@ -25,27 +27,20 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 
 ## Public key signatures
 
-`KeyPair keyPair()`\
+##### `KeyPair keyPair()`
 Create a random KeyPair.
 
-`KeyPair keyPairFromSeed(byte[] seed)`\
+##### `KeyPair keyPairFromSeed(byte[] seed)`
 Create a KeyPair from seed.
 
-`KeyPair keyPairFromSecretKey(byte[] privateKey)`\
+##### `KeyPair keyPairFromSecretKey(byte[] privateKey)`
 Create a KeyPair from a private key.
 
-`byte[] signDetached(byte[] msg, byte[] privateKey)`\
-Sign a message using a private key. The return value is the digital signature, without he message attached.
+##### `Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
+Sign a message using a private key or a KeyPair. The return value is the digital signature of type Binary.
 
-`byte[] signDetached(byte[] msg, KeyPair keypair)`\
-Sign a message using a KeyPair. The return value is the digital signature, without he message attached.
-
-`boolean verify(byte[] msg, byte[] signature, byte[] publicKey)`\
-Verify a signature using a public key.
-
-`boolean verify(byte[] msg, byte[] signature, KeyPair keypair)`\
-Verify a signature using a KeyPair.
-
+##### `boolean verify(byte[]|Binary|String msg, byte[]|Binary|KeyPair signature, byte[]|Binary publicKey)`
+Verify a signature using a public key or a KeyPair.
 
 _A `sign` method which prepends the message to the signature, compatible with
 [libsodium's combined mode](https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#combined-mode),
@@ -53,21 +48,14 @@ is not yet supported._
 
 ### ECDSA
 
-`ECDSA(String curve)`\
-Create an ECDSA object specifying the curve name.
-
-`ECDSA(X9ECParameters curve)`\
-Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html)
-to specify the curve and default `SHA256` hash algorithm.
-
-`ECDSA(X9ECParameters curve, Digest digest)`\
-Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html)
-to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
-to specify the hash algorithm.
+##### `ECDSA(X9ECParameters|String curve, Binary digest = SHA256Binary())`
+Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
+to specify the curve and [Bouncy Castle's Binary](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Binary.html)
+to specify the hash algorithm, with default one being SHA-256.
 
 ### Ed25519
 
-`Ed25519()`\
+##### `Ed25519()`
 Create an ed25519 object.
 
 ### Example usages
@@ -78,7 +66,7 @@ Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest,
 ECDSA secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
 
 KeyPair myKeyPair = secp256k1.keyPair();
-byte[] myMessage = "Hello".getBytes();
+String myMessage = "Hello";
 byte[] mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
@@ -90,7 +78,7 @@ Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, 
 X9ECParameters curve = SECNamedCurves.getByName("secp256r1")
 ECDSA secp256r1 = new ECDSA(curve, new SHA512Digest());
 
-byte[] mySecretKey = Base64.getDecoder().decode("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
+Binary mySecretKey = Binary.fromBase64("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
 
 KeyPair myKeyPair = secp256r1.keyPairFromSecretKey(mySecretKey);
 ```
@@ -101,7 +89,7 @@ Create an `Ed25519` object, create a KeyPair, sign a message and verify it.
 Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
-byte[] myMessage = "Hello".getBytes();
+String myMessage = "Hello";
 byte[] mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
@@ -109,34 +97,11 @@ ed25519.verify(myMessage, mySignature, myKeyPair) // True
 
 ## Hashing
 
-`Hasher(MessageDigest md)`\
-Create a `Hasher` object, using [Java's MessageDigest](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageDigest.html).
+`Hasher(MessageDigest|String algorithm)`\
+Create a Hasher object, using [Java's MessageDigest](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageDigest.html) or using String to specify the algortihm.
 
-`Hasher(String algorithm)`\
-Create a `Hasher` object, using String.
-
-`Digest hash(byte[] msg)`\
-Hash a byte array.
-
-`Digest hash(String msg)`\
-Hash a String.
-
-### Digest
-
-`Digest(byte[] digest)`\
-Create a `Digest` object, using byte array.
-
-`byte[] getBinary()`\
-Get binary of the digest.
-
-`String getHex()`\
-Get hex encoding of the digest.
-
-`String getBase58()`\
-Get base58 encoding of the digest.
-
-`String getBase64()`\
-Get base64 encoding of the digest.
+`Binary hash(byte[]|String msg)`\
+Hash a byte array or a String.
 
 ### Example usages
 
@@ -144,13 +109,43 @@ Create a `Hasher` object, using `SHA-256` algorithm, hash a message and encode i
 
 ```java
 Hasher sha256 = new Hasher("SHA-256");
-Digest mySHA256Digest = sha256.hash("my message");
-String mySHA256HexEncodedDigest = sha256Digest.getHex();
+Binary mySHA256Digest = sha256.hash("Hello");
+String mySHA256HexEncodedBinary = mySHA256Digest.getHex();
 ```
 
 Create a `Hasher` object, using `Keccak-384` algorithm, hash a message and encode it to base58.
 
 ```java
 Hasher keccak384 = new Hasher("Keccak-384");
-String myKeccak384Base58EncodedDigest = sha256.hash("my message").getBase58();
+String myKeccak384Base58EncodedDigest = keccak384.hash("Hello").getBase58();
 ```
+
+## Helper Types
+
+### Binary
+
+##### `Binary(byte[] binary)`
+Create a Binary object, using byte array.
+
+##### `byte[] getBinary()`
+Get raw byte array encoding of the Binary.
+
+##### `String getHex()`
+Get hex encoding of the Binary.
+
+##### `String getBase58()`
+Get base58 encoding of the Binary.
+
+##### `String getBase64()`
+Get base64 encoding of the Binary.
+
+### KeyPair
+
+##### `KeyPair(byte[]|Binary publicKey, byte[]|Binary privateKey)`
+Create a KeyPair object, using a byte array or a Binary representation of the keys.
+
+##### `Binary getPublicKey()`
+Get Binary of the public key.
+
+##### `Binary getPrivateKey()`
+Get Binary of the private key.

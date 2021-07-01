@@ -1,5 +1,6 @@
 package com.ltonetwork.seasalt.hash;
 
+import com.ltonetwork.seasalt.Binary;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.MessageDigest;
@@ -11,7 +12,7 @@ public class Hasher {
 
     MessageDigest md;
 
-    public Hasher(MessageDigest md) throws NoSuchAlgorithmException, NoSuchProviderException {
+    public Hasher(MessageDigest md) {
         Security.addProvider(new BouncyCastleProvider());
         this.md = md;
     }
@@ -21,11 +22,11 @@ public class Hasher {
         this.md = MessageDigest.getInstance(algorithm, "BC");
     }
 
-    public Digest hash(byte[] msg) {
-        return new Digest(md.digest(msg));
+    public Binary hash(byte[] msg) {
+        return new Binary(md.digest(msg));
     }
 
-    public Digest hash(String msg) {
-        return new Digest(md.digest(msg.getBytes()));
+    public Binary hash(String msg) {
+        return new Binary(md.digest(msg.getBytes()));
     }
 }

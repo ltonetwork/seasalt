@@ -1,5 +1,6 @@
 package com.ltonetwork.seasalt.sign;
 
+import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
@@ -29,17 +30,13 @@ public class Ed25519 implements Signer {
         byte[] publicKey = privateToPublic(privateKey);
         return new KeyPair(publicKey, privateKey);
     }
-
-    public byte[] signDetached(byte[] msg, byte[] privateKey) {
+    
+    public Binary signDetached(byte[] msg, byte[] privateKey) {
         Ed25519Signer signer = new Ed25519Signer();
         Ed25519PrivateKeyParameters privateKeyParameters = new Ed25519PrivateKeyParameters(privateKey);
         signer.init(true, privateKeyParameters);
         signer.update(msg, 0, msg.length);
-        return signer.generateSignature();
-    }
-
-    public byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivatekey());
+        return new Binary(signer.generateSignature());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
@@ -49,11 +46,6 @@ public class Ed25519 implements Signer {
         verifier.update(msg, 0, msg.length);
         return verifier.verifySignature(signature);
     }
-
-    public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        return verify(msg, signature, keypair.getPublickey());
-    }
-
 
     private byte[] privateToPublic(byte[] privateKey) {
         Ed25519PrivateKeyParameters sk = new Ed25519PrivateKeyParameters(privateKey);

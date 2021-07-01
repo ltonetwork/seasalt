@@ -1,19 +1,24 @@
 package com.ltonetwork.seasalt;
 
 public class KeyPair {
-    byte[] publickey;
-    byte[] privatekey;
+    Binary publicKey;
+    Binary privateKey;
 
-    public KeyPair(byte[] publickey, byte[] privatekey) {
-        this.publickey = publickey;
-        this.privatekey = privatekey;
+    public KeyPair(byte[] publicKey, byte[] privateKey) {
+        this.publicKey = new Binary(publicKey);
+        this.privateKey = new Binary(privateKey);
     }
 
-    public byte[] getPublickey() {
-        return publickey;
+    public KeyPair(Binary publicKey, Binary privateKey) {
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
-    public byte[] getPrivatekey() {
-        return privatekey;
+    public Binary getPublicKey() {
+        return publicKey;
+    }
+
+    public Binary getPrivateKey() {
+        return privateKey;
     }
 }

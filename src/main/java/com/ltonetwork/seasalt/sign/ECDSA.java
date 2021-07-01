@@ -1,5 +1,6 @@
 package com.ltonetwork.seasalt.sign;
 
+import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -63,7 +64,11 @@ public class ECDSA implements Signer {
         return new KeyPair(publicKey, privateKey);
     }
 
-    public byte[] signDetached(byte[] msg, byte[] privateKey) {
+    public KeyPair keyPairFromSecretKey(Binary privateKey) {
+        return keyPairFromSecretKey(privateKey.getBytes());
+    }
+
+    public Binary signDetached(byte[] msg, byte[] privateKey) {
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(this.digest));
         signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
         BigInteger[] signature = signer.generateSignature(msg);
@@ -73,19 +78,14 @@ public class ECDSA implements Signer {
             seq.addObject(new ASN1Integer(signature[0]));
             seq.addObject(new ASN1Integer(toCanonicalS(signature[1])));
             seq.close();
-            return baos.toByteArray();
+            return new Binary(baos.toByteArray());
         } catch (IOException e) {
-            return new byte[0];
+            return new Binary(new byte[0]);
         }
     }
 
-    public byte[] signDetached(byte[] msg, KeyPair keypair) {
-        return signDetached(msg, keypair.getPrivatekey());
-    }
-
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
-        ASN1InputStream asn1 = new ASN1InputStream(signature);
-        try {
+        try (ASN1InputStream asn1 = new ASN1InputStream(signature)) {
             ECDSASigner signer = new ECDSASigner();
             signer.init(false, new ECPublicKeyParameters(curve.getCurve().decodePoint(publicKey), domain));
 
@@ -95,16 +95,7 @@ public class ECDSA implements Signer {
             return signer.verifySignature(msg, r, s);
         } catch (Exception e) {
             return false;
-        } finally {
-            try {
-                asn1.close();
-            } catch (IOException ignored) {
-            }
         }
-    }
-
-    public boolean verify(byte[] msg, byte[] signature, KeyPair keypair) {
-        return verify(msg, signature, keypair.getPublickey());
     }
 
     private byte[] privateToPublic(byte[] privateKey) {
