@@ -10,7 +10,7 @@
         <connection>scm:git:git://github.com/ltonetwork/seasalt.git</connection>
         <developerConnection>scm:git:git@github.com:ltonetwork/seasalt.git</developerConnection>
         <url>https://github.com/ltonetwork/seasalt</url>
-        <tag>HEAD</tag>
+        <tag>seasalt-0.0.1</tag>
     </scm>
 
     <build>
