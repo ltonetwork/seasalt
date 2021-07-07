@@ -6,13 +6,13 @@
 
     <groupId>com.ltonetwork</groupId>
     <artifactId>seasalt</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <scm>
         <connection>scm:git:git://github.com/ltonetwork/seasalt.git</connection>
         <developerConnection>scm:git:git@github.com:ltonetwork/seasalt.git</developerConnection>
         <url>https://github.com/ltonetwork/seasalt</url>
-        <tag>HEAD</tag>
+        <tag>seasalt-0.0.3</tag>
     </scm>
 
     <build>
