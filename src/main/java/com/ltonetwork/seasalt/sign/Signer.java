@@ -3,11 +3,15 @@ package com.ltonetwork.seasalt.sign;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+
 public interface Signer {
 
-    KeyPair keyPair();
+    KeyPair keyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
-    KeyPair keyPairFromSeed(byte[] seed);
+    KeyPair keyPairFromSeed(byte[] seed) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException;
 
     KeyPair keyPairFromSecretKey(byte[] privateKey);
     default KeyPair keyPairFromSecretKey(Binary privateKey) {
