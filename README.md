@@ -164,13 +164,22 @@ Get the public key.
 ##### `Binary getPrivateKey()`
 Get the private key.
 
-### ECDSASignature
+### ECDSASignature extends Binary
 
 ##### `ECDSASignature(byte[] r, byte[] s, byte[]|byte v)`
-Create a ECDSASignature object, using a byte arrays of the components of the signatures.
+Create a ECDSASignature object, using a byte arrays of the `r`, `s` and `v` components of the signatures.
 
-##### `Binary getPublicKey()`
-Get the public key.
+##### `ECDSASignature(byte[] r, byte[] s)`
+Create a ECDSASignature object, using a byte arrays of the `r` and `s` components of the signatures (no `recId`).
 
-##### `Binary getPrivateKey()`
-Get the private key.
+##### `Binary getSignatureNoRecId()`
+Get the signature, without the recId, that would mean only components `r` and `s` are going to be present.
+
+##### `byte[] getR()`
+Get the `r` component of the ECDSA signature.
+
+##### `byte[] getS()`
+Get the `s` component of the ECDSA signature.
+
+##### `byte[] getV()`
+Get the `v` component of the ECDSA signature, that would be the `recId`.

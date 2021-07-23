@@ -150,6 +150,9 @@ public class ECDSA implements Signer {
      * Verify signature using public key recovery from itself. Validate if the recovered public key
      * is the same as the one provided.
      *
+     * More information you can find on: <a href="https://www.secg.org/sec1-v2.pdf">
+     *     SEC 1: Elliptic Curve Cryptography</a>
+     *
      * @param msgHash   hash of the data that was signed
      * @param signature the message signature components
      * @param publicKey the public key to be used to verify
