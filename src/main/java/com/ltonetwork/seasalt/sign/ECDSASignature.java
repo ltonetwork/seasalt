@@ -9,9 +9,6 @@ public class ECDSASignature extends Binary {
 
     public ECDSASignature(byte[] r, byte[] s, byte[] v) {
         super(concatenateToSignature(r, s, v));
-        assert r.length==32;
-        assert s.length==32;
-        assert v.length==1;
         this.r = r.clone();
         this.s = s.clone();
         this.v = v.clone();
@@ -19,8 +16,6 @@ public class ECDSASignature extends Binary {
 
     public ECDSASignature(byte[] r, byte[] s, byte v) {
         super(concatenateToSignature(r, s, new byte[]{v}));
-        assert r.length==32;
-        assert s.length==32;
         this.r = r.clone();
         this.s = s.clone();
         this.v = new byte[]{v};
@@ -28,8 +23,6 @@ public class ECDSASignature extends Binary {
 
     public ECDSASignature(byte[] r, byte[] s) {
         super(concatenateToSignature(r, s));
-        assert r.length==32;
-        assert s.length==32;
         this.r = r.clone();
         this.s = s.clone();
     }
@@ -53,15 +46,15 @@ public class ECDSASignature extends Binary {
         return v;
     }
 
-    public static byte[] concatenateToSignature(byte[] r, byte[] s, byte[] v) {
-        byte[] ret = new byte[65];
-        System.arraycopy(r, 0, ret, 0, 32);
-        System.arraycopy(s, 0, ret, 32, 32);
-        System.arraycopy(v, 0, ret, 64, 1);
+    private static byte[] concatenateToSignature(byte[] r, byte[] s, byte[] v) {
+        byte[] ret = new byte[r.length + s.length + v.length];
+        System.arraycopy(r, 0, ret, 0, r.length);
+        System.arraycopy(s, 0, ret, r.length, s.length);
+        System.arraycopy(v, 0, ret, (r.length + s.length), v.length);
         return ret;
     }
 
-    public static byte[] concatenateToSignature(byte[] r, byte[] s) {
+    private static byte[] concatenateToSignature(byte[] r, byte[] s) {
         byte[] ret = new byte[64];
         System.arraycopy(r, 0, ret, 0, 32);
         System.arraycopy(s, 0, ret, 32, 32);
