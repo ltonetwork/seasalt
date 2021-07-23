@@ -2,27 +2,21 @@ package sign;
 
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
+import com.ltonetwork.seasalt.hash.Hasher;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import com.ltonetwork.seasalt.sign.ECDSASignature;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.digests.KeccakDigest;
-import org.bouncycastle.crypto.digests.SHA3Digest;
-import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.Arrays;
+import java.security.*;
 import java.util.Random;
 
 public class ECDSASecp256k1Test {
@@ -66,75 +60,95 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testSigns() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = new Hasher("Keccak-256").hash(b).getBytes();
+
         KeyPair kp = secp256k1.keyPair();
-        byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-
-//        System.out.println(Arrays.toString(kp.getPrivateKey().getBytes()));
-//        System.out.println(Arrays.toString(kp.getPublicKey().getBytes()));
-
-//        System.out.println(secp256k1.signDetached(msg, kp).getBytes().length);
 
         Assertions.assertDoesNotThrow(() -> {
-            secp256k1.signDetached(msg, kp);
+            secp256k1.signDetached(msgHash, kp);
         });
     }
 
     @Test
     public void testVerify() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        KeyPair kp = secp256k1.keyPair();
-        byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        ECDSASignature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = new Hasher("Keccak-256").hash(b).getBytes();
 
-        Assertions.assertTrue(secp256k1.verify(msg, sig, kp));
+        KeyPair kp = secp256k1.keyPair();
+
+        ECDSASignature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
+
+        Assertions.assertTrue(secp256k1.verify(msgHash, sig, kp));
     }
 
     @Test
     public void testVerifyFail() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = new Hasher("Keccak-256").hash(b).getBytes();
+
         KeyPair kp = secp256k1.keyPair();
-        X9ECParameters curve = SECNamedCurves.getByName("secp256k1");
-        System.out.println(curve.getCurve());
-        byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        ECDSASignature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
+        Binary sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
 
         Assertions.assertFalse(secp256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }
 
     @Test
-    public void testSignWithWeb3() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        ECKeyPair ecKeyPair = Keys.createEcKeyPair();
-        BigInteger privateKeyInDec = ecKeyPair.getPrivateKey();
+    public void testVerifyWithWeb3() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = new Hasher("Keccak-256").hash(b).getBytes();
 
-        Sign.SignatureData signature = Sign.signMessage("test".getBytes(), ecKeyPair, false);
+        KeyPair kpSeaSalt = secp256k1.keyPair();
+        ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
 
-        KeyPair kp = secp256k1.keyPairFromSecretKey(privateKeyInDec.toByteArray());
-
-        byte[] retval = new byte[64];
-        System.arraycopy(signature.getR(), 0, retval, 0, 32);
-        System.arraycopy(signature.getS(), 0, retval, 32, 32);
-        System.out.println(Numeric.toHexString(retval));
-        System.out.println(secp256k1.verify("test", retval, kp));
+        Sign.SignatureData sigWeb3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR(), sigSeaSalt.getS());
+        BigInteger recoveredWeb3 = Sign.signedMessageHashToKey(msgHash, sigWeb3);
+        Assertions.assertArrayEquals(kpSeaSalt.getPublicKey().getBytes(), recoveredWeb3.toByteArray());
     }
 
     @Test
-    public void testVerifyWithWeb3() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        ECKeyPair ecKeyPair = Keys.createEcKeyPair();
-        BigInteger privateKeyInDec = ecKeyPair.getPrivateKey();
+    public void testSignWithWeb3() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = Hash.sha3(b);
 
-        for(int i=0; i<10; i++){
-            Sign.SignatureData signature = Sign.signMessage("othsderioghsdf".getBytes(), ecKeyPair, false);
+        ECKeyPair kpWeb3 = Keys.createEcKeyPair();
+        Sign.SignatureData sigWeb3 = Sign.signMessage(msgHash, kpWeb3, false);
 
-            System.out.println(signature.getR().length);
-            System.out.println(signature.getS().length);
-            System.out.println(signature.getV().length);
-        }
-//        KeyPair kp = secp256k1.keyPairFromSecretKey(privateKeyInDec.toByteArray());
-//
-//        byte[] sig = secp256k1.signDetached("test", kp).getBytes();
+        ECDSASignature sigSeaSalt = new ECDSASignature(sigWeb3.getR(), sigWeb3.getS(), sigWeb3.getV());
 
-//        byte[] retval = new byte[65];
-//        System.arraycopy(signature.getR(), 0, retval, 0, 32);
-//        System.arraycopy(signature.getS(), 0, retval, 32, 32);
-//        System.arraycopy(signature.getV(), 0, retval, 64, 1);
-//        System.out.println(Numeric.toHexString(retval));
+        Assertions.assertTrue(secp256k1.verify(msgHash, sigSeaSalt, kpWeb3.getPublicKey().toByteArray()));
+    }
+
+    @Test
+    public void testWeb3SeasaltFull() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        byte[] msgHash = Hash.sha3(b);
+
+        // WEB3J
+        ECKeyPair kpWeb3 = Keys.createEcKeyPair();
+        Sign.SignatureData sigWeb3 = Sign.signMessage(msgHash, kpWeb3, false);
+
+        BigInteger recoveredWeb3 = Sign.signedMessageHashToKey(msgHash, sigWeb3);
+
+        Assertions.assertEquals(kpWeb3.getPublicKey(), recoveredWeb3);
+
+        // SEASALT
+        KeyPair kpSeaSalt = secp256k1.keyPairFromSecretKey(kpWeb3.getPrivateKey().toByteArray());
+        System.out.println(kpWeb3.getPublicKey().toByteArray().length);
+        ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
+
+        Sign.SignatureData sig2Web3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR(), sigSeaSalt.getS());
+        BigInteger recoveredSeaSalt = Sign.signedMessageHashToKey(msgHash, sig2Web3);
+
+        Assertions.assertArrayEquals(kpSeaSalt.getPublicKey().getBytes(), recoveredSeaSalt.toByteArray());
+
+        Assertions.assertEquals(recoveredWeb3, recoveredSeaSalt);
+
     }
 }
