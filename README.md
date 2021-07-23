@@ -11,9 +11,9 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 
 - Ed25519
 - ECDSA
-  - secp256r1 (aka NIST P-256)
   - secp256k1
-  - More curves listed [here](https://people.eecs.berkeley.edu/~jonah/javadoc/org/bouncycastle/asn1/sec/SECNamedCurves.html)
+
+[comment]: <> (  - secp256r1)
 
 ## Hashing algorithms
 
@@ -60,29 +60,33 @@ Create an ed25519 object.
 
 ### Example usages
 
-Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest, create a KeyPair, sign a message and verify it.
+Create an `ECDSA` object, using `secp256k1` curve with default `Keccak-256` digest, create a KeyPair, sign a message and verify it.
 
 ```java
 ECDSA secp256k1 = new ECDSA("secp256k1");
 
 KeyPair myKeyPair = secp256k1.keyPair();
 String myMessage = "Hello";
-Binary mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+ECDSASignature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
 
-Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.
+[comment]: <> (Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.)
 
-```java
-X9ECParameters curve = SECNamedCurves.getByName("secp256r1");
-Digest digest = new SHA512Digest();
-ECDSA secp256r1 = new ECDSA(curve, digest);
+[comment]: <> (```java)
 
-Binary mySecretKey = Binary.fromBase64("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
+[comment]: <> (X9ECParameters curve = SECNamedCurves.getByName&#40;"secp256r1"&#41;;)
 
-KeyPair myKeyPair = secp256r1.keyPairFromSecretKey(mySecretKey);
-```
+[comment]: <> (Digest digest = new SHA512Digest&#40;&#41;;)
+
+[comment]: <> (ECDSA secp256r1 = new ECDSA&#40;curve, digest&#41;;)
+
+[comment]: <> (Binary mySecretKey = Binary.fromBase64&#40;"MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw=="&#41;;)
+
+[comment]: <> (KeyPair myKeyPair = secp256r1.keyPairFromSecretKey&#40;mySecretKey&#41;;)
+
+[comment]: <> (```)
 
 Create an `Ed25519` object, create a KeyPair, sign a message and verify it.
 
@@ -91,7 +95,7 @@ Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
 String myMessage = "Hello";
-Binary mySignature = ed25519.signDetached(myMessage, myKeyPair);
+ECDSASignature mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
 ```
@@ -153,6 +157,17 @@ Get base64 encoded value of the Binary.
 
 ##### `KeyPair(byte[]|Binary publicKey, byte[]|Binary privateKey)`
 Create a KeyPair object, using a byte array or a Binary representation of the keys.
+
+##### `Binary getPublicKey()`
+Get the public key.
+
+##### `Binary getPrivateKey()`
+Get the private key.
+
+### ECDSASignature
+
+##### `ECDSASignature(byte[] r, byte[] s, byte[]|byte v)`
+Create a ECDSASignature object, using a byte arrays of the components of the signatures.
 
 ##### `Binary getPublicKey()`
 Get the public key.
