@@ -30,26 +30,24 @@ public class ECDSA implements Signer {
     final ECDomainParameters domain;
     final BigInteger HALF_CURVE_ORDER;
     final Digest digest;
-    final String curveString;
 
-    public ECDSA(X9ECParameters curve, Digest digest, String curveString) {
+    public ECDSA(X9ECParameters curve, Digest digest) {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
         this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
         this.digest = digest;
-        this.curveString = curveString;
 
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
     }
 
-    public ECDSA(X9ECParameters curve, String curveString) {
-        this(curve, new SHA256Digest(), curveString);
+    public ECDSA(X9ECParameters curve) {
+        this(curve, new SHA256Digest());
     }
 
     public ECDSA(String curve) {
-        this(SECNamedCurves.getByName(curve), new SHA256Digest(), curve);
+        this(SECNamedCurves.getByName(curve), new SHA256Digest());
     }
 
     public KeyPair keyPair() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {

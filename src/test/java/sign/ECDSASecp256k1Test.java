@@ -25,7 +25,7 @@ public class ECDSASecp256k1Test {
 
     @BeforeEach
     public void init() {
-        secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"), "secp256k1");
+        secp256k1 = new ECDSA("secp256k1");
     }
 
     @Test
