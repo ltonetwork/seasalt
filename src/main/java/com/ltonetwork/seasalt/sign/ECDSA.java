@@ -50,12 +50,12 @@ public class ECDSA implements Signer {
         this(SECNamedCurves.getByName(curve), new SHA256Digest());
     }
 
-    public KeyPair keyPair() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+    public KeyPair keyPair() {
         SecureRandom srSeed = new SecureRandom();
         return generateKeyPair(srSeed);
     }
 
-    public KeyPair keyPairFromSeed(byte[] seed) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+    public KeyPair keyPairFromSeed(byte[] seed) {
         SecureRandom srSeed = new SecureRandom(seed);
         return generateKeyPair(srSeed);
     }
@@ -149,9 +149,9 @@ public class ECDSA implements Signer {
     /**
      * Verify signature using public key recovery from itself. Validate if the recovered public key
      * is the same as the one provided.
-     *
+     * <p>
      * More information you can find on: <a href="https://www.secg.org/sec1-v2.pdf">
-     *     SEC 1: Elliptic Curve Cryptography</a>
+     * SEC 1: Elliptic Curve Cryptography</a>
      *
      * @param msgHash   hash of the data that was signed
      * @param signature the message signature components
@@ -296,13 +296,19 @@ public class ECDSA implements Signer {
         return curve.getCurve().decodePoint(compEnc);
     }
 
-    private KeyPair generateKeyPair(SecureRandom seed) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
-        ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256k1");
-        keyPairGenerator.initialize(ecGenParameterSpec, seed);
-        java.security.KeyPair javaKeyPair = keyPairGenerator.generateKeyPair();
-        BigInteger[] decodedASN1Keys = decodeASN1KeyPair(javaKeyPair);
-        return new KeyPair(decodedASN1Keys[0].toByteArray(), decodedASN1Keys[1].toByteArray());
+    private KeyPair generateKeyPair(SecureRandom seed) {
+        KeyPairGenerator keyPairGenerator = null;
+        try {
+            keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256k1");
+            keyPairGenerator.initialize(ecGenParameterSpec, seed);
+            java.security.KeyPair javaKeyPair = keyPairGenerator.generateKeyPair();
+            BigInteger[] decodedASN1Keys = decodeASN1KeyPair(javaKeyPair);
+            return new KeyPair(decodedASN1Keys[0].toByteArray(), decodedASN1Keys[1].toByteArray());
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unknown external dependency error");
+        }
     }
 
     /**
