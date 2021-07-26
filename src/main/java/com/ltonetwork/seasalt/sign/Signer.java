@@ -9,7 +9,7 @@ import java.security.NoSuchProviderException;
 
 public interface Signer {
 
-    KeyPair keyPair() , InvalidAlgorithmParameterException;
+    KeyPair keyPair();
 
     KeyPair keyPairFromSeed(byte[] seed) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException;
 
