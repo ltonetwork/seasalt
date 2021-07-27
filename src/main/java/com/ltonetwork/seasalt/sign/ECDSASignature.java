@@ -2,7 +2,7 @@ package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.Binary;
 
-public class ECDSASignature extends Binary {
+public class ECDSASignature extends Signature {
     private final byte[] r;
     private final byte[] s;
     private byte[] v;

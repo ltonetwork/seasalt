@@ -112,13 +112,7 @@ public class ECDSARecovery implements Signer {
      * @return true if the signature is valid, false otherwise
      */
     public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        if (signature.getBytes().length == 65) {
-            return verifyRecoveryKey(msgHash, signature, publicKey);
-        } else if (signature.getBytes().length == 64) {
-            return verifyNoRecoveryKey(msgHash, signature, publicKey);
-        } else {
-            throw new IllegalArgumentException("Invalid signature length");
-        }
+        return verifyRecoveryKey(msgHash, signature, publicKey);
     }
 
     /**
@@ -132,18 +126,12 @@ public class ECDSARecovery implements Signer {
     public boolean verify(byte[] msgHash, byte[] signature, byte[] publicKey) {
         byte[] r = new byte[32];
         byte[] s = new byte[32];
+        byte[] v = new byte[1];
         System.arraycopy(signature, 0, r, 0, r.length);
         System.arraycopy(signature, r.length, s, 0, s.length);
+        System.arraycopy(signature, (r.length + s.length), v, 0, v.length);
 
-        if (signature.length == 65) {
-            byte[] v = new byte[1];
-            System.arraycopy(signature, (r.length + s.length), v, 0, v.length);
-            return verifyRecoveryKey(msgHash, new ECDSASignature(r, s, v), publicKey);
-        } else if (signature.length == 64) {
-            return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
-        } else {
-            throw new IllegalArgumentException("Invalid signature length");
-        }
+        return verifyRecoveryKey(msgHash, new ECDSASignature(r, s, v), publicKey);
     }
 
     /**
@@ -158,24 +146,9 @@ public class ECDSARecovery implements Signer {
      * @param publicKey the public key to be used to verify
      * @return true if the signature is valid, false otherwise
      */
-    private boolean verifyRecoveryKey(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
+    protected boolean verifyRecoveryKey(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
         BigInteger pubKeyRecovered = signedMessageToKey(msgHash, signature);
         return Arrays.equals(publicKey, pubKeyRecovered.toByteArray());
-    }
-
-    /**
-     * Verify signature using the traditional verification method and the Bouncy Castle library.
-     *
-     * @param msgHash   hash of the data that was signed
-     * @param signature the message signature components
-     * @param publicKey the public key to be used to verify
-     * @return true if the signature is valid, false otherwise
-     */
-    private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        ECDSASigner signer = new ECDSASigner();
-        signer.init(false, new ECPublicKeyParameters(curve.getCurve().decodePoint(publicKey), domain));
-
-        return signer.verifySignature(msgHash, new BigInteger(signature.getR()), new BigInteger(signature.getS()));
     }
 
     /**
@@ -200,7 +173,7 @@ public class ECDSARecovery implements Signer {
      * @param msgHash hash of the data that was signed
      * @return an ECKey containing only the public part, or null if recovery wasn't possible
      */
-    private BigInteger recoverFromSignature(int recId, BigInteger r, BigInteger s, byte[] msgHash) {
+    protected BigInteger recoverFromSignature(int recId, BigInteger r, BigInteger s, byte[] msgHash) {
         assert (recId >= 0);
         assert (r.signum() >= 0);
         assert (s.signum() >= 0);
@@ -384,7 +357,7 @@ public class ECDSARecovery implements Signer {
      *
      * @return the signature in a canonicalised form
      */
-    private BigInteger toCanonicalised(BigInteger s) {
+    protected BigInteger toCanonicalised(BigInteger s) {
         if (!isCanonical(s)) {
             // The order of the curve is the number of valid points that exist on that curve.
             // If S is in the upper half of the number of valid points, then bring it back to
@@ -404,7 +377,7 @@ public class ECDSARecovery implements Signer {
      *
      * @return byte representation of the BigInteger, without sign bit
      */
-    private byte[] toBytesPadded(BigInteger value, int length) {
+    protected byte[] toBytesPadded(BigInteger value, int length) {
         byte[] result = new byte[length];
         byte[] bytes = value.toByteArray();
 
