@@ -30,13 +30,13 @@ public class Ed25519 implements Signer {
         byte[] publicKey = privateToPublic(privateKey);
         return new KeyPair(publicKey, privateKey);
     }
-    
-    public Binary signDetached(byte[] msg, byte[] privateKey) {
+
+    public Signature signDetached(byte[] msg, byte[] privateKey) {
         Ed25519Signer signer = new Ed25519Signer();
         Ed25519PrivateKeyParameters privateKeyParameters = new Ed25519PrivateKeyParameters(privateKey);
         signer.init(true, privateKeyParameters);
         signer.update(msg, 0, msg.length);
-        return new Binary(signer.generateSignature());
+        return new Signature(signer.generateSignature());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {

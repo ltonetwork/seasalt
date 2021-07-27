@@ -1,11 +1,11 @@
 package sign;
 
-import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.Hasher;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import com.ltonetwork.seasalt.sign.ECDSARecovery;
 import com.ltonetwork.seasalt.sign.ECDSASignature;
+import com.ltonetwork.seasalt.sign.Signature;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,12 +23,13 @@ import java.util.Random;
 public class ECDSARecoverySecp256K1Test {
 
     ECDSARecovery secp256k1;
+    Hasher hasher;
 
     @BeforeEach
     public void init() {
         secp256k1 = new ECDSARecovery("secp256k1");
+        hasher = new Hasher("Keccak-256");
     }
-    Hasher hasher = new Hasher("Keccak-256");
 
     @Test
     public void testKeyPair() {
@@ -104,7 +105,7 @@ public class ECDSARecoverySecp256K1Test {
         byte[] msgHash = hasher.hash("test").getBytes();
 
         KeyPair kp = secp256k1.keyPair();
-        Binary sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
+        Signature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
 
         Assertions.assertFalse(secp256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }

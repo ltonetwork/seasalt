@@ -9,7 +9,6 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
-import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
@@ -124,12 +123,12 @@ public class ECDSARecovery implements Signer {
      * @return true if the signature is valid, false otherwise
      */
     public boolean verify(byte[] msgHash, byte[] signature, byte[] publicKey) {
+        byte[] v = new byte[1];
         byte[] r = new byte[32];
         byte[] s = new byte[32];
-        byte[] v = new byte[1];
-        System.arraycopy(signature, 0, r, 0, r.length);
-        System.arraycopy(signature, r.length, s, 0, s.length);
-        System.arraycopy(signature, (r.length + s.length), v, 0, v.length);
+        System.arraycopy(signature, 0, v, 0, v.length);
+        System.arraycopy(signature, v.length, r, 0, r.length);
+        System.arraycopy(signature, (r.length + v.length), s, 0, s.length);
 
         return verifyRecoveryKey(msgHash, new ECDSASignature(r, s, v), publicKey);
     }
