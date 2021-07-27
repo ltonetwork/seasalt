@@ -36,7 +36,7 @@ Create a KeyPair from seed.
 ##### `KeyPair keyPairFromSecretKey(byte[]|Binary privateKey)`
 Create a KeyPair from a private key.
 
-##### `Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
+##### `Signature signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
 Sign a message using a private key or a KeyPair. The return value is the digital signature of type Binary.
 
 ##### `boolean verify(byte[]|Binary|String msg, byte[]|Binary|KeyPair signature, byte[]|Binary publicKey)`
@@ -46,12 +46,23 @@ _A `sign` method which prepends the message to the signature, compatible with
 [libsodium's combined mode](https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#combined-mode),
 is not yet supported._
 
-### ECDSA
+### ECDSARecovery
+
+##### `ECDSARecovery(X9ECParameters|String curve, Digest digest = SHA256Digest())`
+Create an ECDSARecovery object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
+to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSARecovery will have attached `v` (recId) as a header byte to the signature.
+
+### ECDSA extends ECDSARecovery
 
 ##### `ECDSA(X9ECParameters|String curve, Digest digest = SHA256Digest())`
 Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
 to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
 to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSARecovery will **NOT** have attached `v` (recId) as a header byte to the signature.
 
 ### Ed25519
 
@@ -60,14 +71,34 @@ Create an ed25519 object.
 
 ### Example usages
 
-Create an `ECDSA` object, using `secp256k1` curve with default `Keccak-256` digest, create a KeyPair, sign a message and verify it.
+Create an `ECDSARecovery` object, using `secp256k1` curve with default `Keccak-256` digest,
+hash a message, create a KeyPair, sign a message and verify it.
+
+```java
+ECDSARecovery secp256k1 = new ECDSARecovery("secp256k1");
+Hasher hasher = new Hasher("Keccak-256");
+
+KeyPair myKeyPair = secp256k1.keyPair();
+Binary msgHash = hasher.hash("Hello");
+Signature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+
+assert sig.getBytes().length == 65; // including header recId byte
+
+secp256k1.verify(myMessage, mySignature, myKeyPair) // True
+```
+
+Create an `ECDSA` object, using `secp256k1` curve with default `Keccak-256` digest,
+hash a message, create a KeyPair, sign a message and verify it.
 
 ```java
 ECDSA secp256k1 = new ECDSA("secp256k1");
+Hasher hasher = new Hasher("Keccak-256");
 
 KeyPair myKeyPair = secp256k1.keyPair();
-String myMessage = "Hello";
-ECDSASignature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+Binary msgHash = hasher.hash("Hello");
+Signature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+
+assert sig.getBytes().length == 64;
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
@@ -164,16 +195,18 @@ Get the public key.
 ##### `Binary getPrivateKey()`
 Get the private key.
 
-### ECDSASignature extends Binary
+### Signature extends Binary
+
+##### `Signature(byte[] sig)`
+Create a Signature object, using a byte array.
+
+### ECDSASignature extends Signature
 
 ##### `ECDSASignature(byte[] r, byte[] s, byte[]|byte v)`
-Create a ECDSASignature object, using a byte arrays of the `r`, `s` and `v` components of the signatures.
+Create a ECDSASignature object, using byte arrays of the `r`, `s` and `v` components of the signatures.
 
 ##### `ECDSASignature(byte[] r, byte[] s)`
-Create a ECDSASignature object, using a byte arrays of the `r` and `s` components of the signatures (no `recId`).
-
-##### `Binary getSignatureNoRecId()`
-Get the signature, without the recId, that would mean only components `r` and `s` are going to be present.
+Create a ECDSASignature object, using byte arrays of the `r` and `s` components of the signatures (no `recId`).
 
 ##### `byte[] getR()`
 Get the `r` component of the ECDSA signature.
