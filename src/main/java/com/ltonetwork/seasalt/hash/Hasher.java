@@ -17,14 +17,9 @@ public class Hasher {
         this.md = md;
     }
 
-    public Hasher(String algorithm) {
+    public Hasher(String algorithm) throws NoSuchAlgorithmException, NoSuchProviderException {
         Security.addProvider(new BouncyCastleProvider());
-        try {
-            this.md = MessageDigest.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unknown external dependency error");
-        }
+        this.md = MessageDigest.getInstance(algorithm, "BC");
     }
 
     public Binary hash(byte[] msg) {

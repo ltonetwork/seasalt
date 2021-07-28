@@ -26,7 +26,7 @@ public class ECDSARecoverySecp256K1Test {
     Hasher hasher;
 
     @BeforeEach
-    public void init() {
+    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
         secp256k1 = new ECDSARecovery("secp256k1");
         hasher = new Hasher("Keccak-256");
     }

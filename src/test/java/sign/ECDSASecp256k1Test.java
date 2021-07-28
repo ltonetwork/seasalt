@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Random;
 
 public class ECDSASecp256k1Test {
@@ -20,7 +22,7 @@ public class ECDSASecp256k1Test {
     Hasher hasher;
 
     @BeforeEach
-    public void init() {
+    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
         secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
         hasher = new Hasher("Keccak-256");
     }
