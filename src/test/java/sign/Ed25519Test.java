@@ -3,6 +3,7 @@ package sign;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
+import com.ltonetwork.seasalt.sign.Signature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,7 @@ public class Ed25519Test {
     public void testVerify() {
         KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        Binary sig = ed25519.signDetached(msg, kp.getPrivateKey());
+        Signature sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
         Assertions.assertTrue(ed25519.verify(msg, sig, kp));
     }
@@ -83,7 +84,7 @@ public class Ed25519Test {
     public void testVerifyFail() {
         KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        Binary sig = ed25519.signDetached(msg, kp.getPrivateKey());
+        Signature sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
         Assertions.assertFalse(ed25519.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }

@@ -11,9 +11,9 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 
 - Ed25519
 - ECDSA
-  - secp256r1 (aka NIST P-256)
   - secp256k1
-  - More curves listed [here](https://people.eecs.berkeley.edu/~jonah/javadoc/org/bouncycastle/asn1/sec/SECNamedCurves.html)
+
+[comment]: <> (  - secp256r1)
 
 ## Hashing algorithms
 
@@ -36,7 +36,7 @@ Create a KeyPair from seed.
 ##### `KeyPair keyPairFromSecretKey(byte[]|Binary privateKey)`
 Create a KeyPair from a private key.
 
-##### `Binary signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
+##### `Signature signDetached(byte[]|Binary|String msg, byte[]|Binary|KeyPair privateKey)`
 Sign a message using a private key or a KeyPair. The return value is the digital signature of type Binary.
 
 ##### `boolean verify(byte[]|Binary|String msg, byte[]|Binary|KeyPair signature, byte[]|Binary publicKey)`
@@ -46,12 +46,23 @@ _A `sign` method which prepends the message to the signature, compatible with
 [libsodium's combined mode](https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#combined-mode),
 is not yet supported._
 
-### ECDSA
+### ECDSARecovery
+
+##### `ECDSARecovery(X9ECParameters|String curve, Digest digest = SHA256Digest())`
+Create an ECDSARecovery object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
+to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSARecovery will have attached `v` (recId) as a header byte to the signature.
+
+### ECDSA extends ECDSARecovery
 
 ##### `ECDSA(X9ECParameters|String curve, Digest digest = SHA256Digest())`
 Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
 to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
 to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSARecovery will **NOT** have attached `v` (recId) as a header byte to the signature.
 
 ### Ed25519
 
@@ -60,29 +71,53 @@ Create an ed25519 object.
 
 ### Example usages
 
-Create an `ECDSA` object, using `secp256k1` curve with default `SHA-256` digest, create a KeyPair, sign a message and verify it.
+Create an `ECDSARecovery` object, using `secp256k1` curve with default `Keccak-256` digest,
+hash a message, create a KeyPair, sign a message and verify it.
 
 ```java
-ECDSA secp256k1 = new ECDSA("secp256k1");
+ECDSARecovery secp256k1 = new ECDSARecovery("secp256k1");
+Hasher hasher = new Hasher("Keccak-256");
 
 KeyPair myKeyPair = secp256k1.keyPair();
-String myMessage = "Hello";
-Binary mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+Binary msgHash = hasher.hash("Hello");
+Signature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
+
+assert sig.getBytes().length == 65; // including header recId byte
 
 secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
 
-Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.
+Create an `ECDSA` object, using `secp256k1` curve with default `Keccak-256` digest,
+hash a message, create a KeyPair, sign a message and verify it.
 
 ```java
-X9ECParameters curve = SECNamedCurves.getByName("secp256r1");
-Digest digest = new SHA512Digest();
-ECDSA secp256r1 = new ECDSA(curve, digest);
+ECDSA secp256k1 = new ECDSA("secp256k1");
+Hasher hasher = new Hasher("Keccak-256");
 
-Binary mySecretKey = Binary.fromBase64("MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw==");
+KeyPair myKeyPair = secp256k1.keyPair();
+Binary msgHash = hasher.hash("Hello");
+Signature mySignature = secp256k1.signDetached(myMessage, myKeyPair);
 
-KeyPair myKeyPair = secp256r1.keyPairFromSecretKey(mySecretKey);
+assert sig.getBytes().length == 64;
+
+secp256k1.verify(myMessage, mySignature, myKeyPair) // True
 ```
+
+[comment]: <> (Create an `ECDSA` object, using `secp256r1` curve with custom `SHA-512` digest, and create a KeyPair from pre-existing private key.)
+
+[comment]: <> (```java)
+
+[comment]: <> (X9ECParameters curve = SECNamedCurves.getByName&#40;"secp256r1"&#41;;)
+
+[comment]: <> (Digest digest = new SHA512Digest&#40;&#41;;)
+
+[comment]: <> (ECDSA secp256r1 = new ECDSA&#40;curve, digest&#41;;)
+
+[comment]: <> (Binary mySecretKey = Binary.fromBase64&#40;"MHQCAQEEIEa56GG2PTUJyIt4FydaMNItYsjNj6ZIbd7jXvDY4ElfoAcGBSuBBAAKoUQDQgAEJQDn8/vd8oQpA/VE3ch0lM6VAprOTiV9VLp38rwfOog3qUYcTxxX/sxJl1M4HncqEopYIKkkovoFFi62Yph6nw=="&#41;;)
+
+[comment]: <> (KeyPair myKeyPair = secp256r1.keyPairFromSecretKey&#40;mySecretKey&#41;;)
+
+[comment]: <> (```)
 
 Create an `Ed25519` object, create a KeyPair, sign a message and verify it.
 
@@ -91,7 +126,7 @@ Ed25519 ed25519 = new Ed25519();
 
 KeyPair myKeyPair = ed25519.keyPair();
 String myMessage = "Hello";
-Binary mySignature = ed25519.signDetached(myMessage, myKeyPair);
+ECDSASignature mySignature = ed25519.signDetached(myMessage, myKeyPair);
 
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
 ```
@@ -159,3 +194,25 @@ Get the public key.
 
 ##### `Binary getPrivateKey()`
 Get the private key.
+
+### Signature extends Binary
+
+##### `Signature(byte[] sig)`
+Create a Signature object, using a byte array.
+
+### ECDSASignature extends Signature
+
+##### `ECDSASignature(byte[] r, byte[] s, byte[]|byte v)`
+Create a ECDSASignature object, using byte arrays of the `r`, `s` and `v` components of the signatures.
+
+##### `ECDSASignature(byte[] r, byte[] s)`
+Create a ECDSASignature object, using byte arrays of the `r` and `s` components of the signatures (no `recId`).
+
+##### `byte[] getR()`
+Get the `r` component of the ECDSA signature.
+
+##### `byte[] getS()`
+Get the `s` component of the ECDSA signature.
+
+##### `byte[] getV()`
+Get the `v` component of the ECDSA signature, that would be the `recId`.

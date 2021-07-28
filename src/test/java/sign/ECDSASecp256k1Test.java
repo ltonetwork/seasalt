@@ -1,23 +1,30 @@
 package sign;
 
-import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
+import com.ltonetwork.seasalt.hash.Hasher;
 import com.ltonetwork.seasalt.sign.ECDSA;
+import com.ltonetwork.seasalt.sign.ECDSARecovery;
+import com.ltonetwork.seasalt.sign.ECDSASignature;
+import com.ltonetwork.seasalt.sign.Signature;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Random;
 
 public class ECDSASecp256k1Test {
 
     ECDSA secp256k1;
+    Hasher hasher;
 
     @BeforeEach
-    public void init() {
+    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
         secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
+        hasher = new Hasher("Keccak-256");
     }
 
     @Test
@@ -53,7 +60,7 @@ public class ECDSASecp256k1Test {
     @Test
     public void testSigns() {
         KeyPair kp = secp256k1.keyPair();
-        byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
+        byte[] msg = hasher.hash("test").getBytes();
 
         Assertions.assertDoesNotThrow(() -> {
             secp256k1.signDetached(msg, kp);
@@ -63,17 +70,28 @@ public class ECDSASecp256k1Test {
     @Test
     public void testVerify() {
         KeyPair kp = secp256k1.keyPair();
-        byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        Binary sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
+        byte[] msg = hasher.hash("test").getBytes();
+        Signature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
 
-        Assertions.assertTrue(secp256k1.verify(msg, sig, kp));
+        Assertions.assertTrue(secp256k1.verify(msg, sig, kp.getPublicKey().getBytes()));
+    }
+
+    @Test
+    public void testVerifyDifferentKp() {
+        ECDSARecovery secp256k1Recovery = new ECDSARecovery(SECNamedCurves.getByName("secp256k1"));
+        KeyPair kpRecovery = secp256k1Recovery.keyPair();
+
+        byte[] msg = hasher.hash("test").getBytes();
+        ECDSASignature sig = secp256k1.signDetached(msg, kpRecovery.getPrivateKey().getBytes());
+
+        Assertions.assertTrue(secp256k1.verify(msg, sig, kpRecovery.getPublicKey().getBytes()));
     }
 
     @Test
     public void testVerifyFail() {
         KeyPair kp = secp256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
-        Binary sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
+        Signature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
 
         Assertions.assertFalse(secp256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
     }

@@ -170,6 +170,12 @@
             <artifactId>bitcoinj-core</artifactId>
             <version>0.15.10</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.web3j/core -->
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>core</artifactId>
+            <version>5.0.0</version>
+        </dependency>
     </dependencies>
 
     <distributionManagement>
