@@ -14,9 +14,13 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.Base64;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -113,7 +117,7 @@ public class ECDSASecp256k1Test {
         byte[] msg = "test".getBytes();
 
         // Generate an EC key pair
-        ECKey ecJWK = new ECKeyGenerator(Curve.P_256)
+        ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1)
                 .generate();
         ECKey ecPublicJWK = ecJWK.toPublicJWK();
 
@@ -122,7 +126,7 @@ public class ECDSASecp256k1Test {
 
         // Creates the JWS object with payload
         JWSObject jwsObject = new JWSObject(
-                new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(ecJWK.getKeyID()).build(),
+                new JWSHeader.Builder(JWSAlgorithm.ES256K).keyID(ecJWK.getKeyID()).build(),
                 new Payload(msg));
 
         // Compute the EC signature
@@ -138,7 +142,20 @@ public class ECDSASecp256k1Test {
         Assertions.assertTrue(jwsObject.verify(verifier));
         Assertions.assertArrayEquals(msg, jwsObject.getPayload().toBytes());
 
+
         ECDSA seasalt = new ECDSA("secp256k1");
-        Assertions.assertTrue(seasalt.verify(jwsObject.getPayload().toBytes(), jwsObject.getSignature().decode(), ecPublicJWK.toPublicKey().getEncoded()));
+        byte[] realMsg = hasher.hash(
+            Base64.getUrlEncoder().encode(jwsObject.getHeader().toString().getBytes(StandardCharsets.UTF_8)) +
+            "." +
+            Base64.getUrlEncoder().encode(jwsObject.getPayload().toString().getBytes(StandardCharsets.UTF_8)) +
+            "test"
+        ).getBytes();
+        byte[] privateKeyValue = ecJWK.getD().decode();
+        KeyPair seasaltKP = seasalt.keyPairFromSecretKey(privateKeyValue);
+
+        System.out.println("Signature JWS: " + jwsObject.getSignature().decode().length + " " + Arrays.toString(jwsObject.getSignature().decode()));
+        System.out.println("Private: " + privateKeyValue.length + " " + Arrays.toString(privateKeyValue));
+        System.out.println("Public: " + seasaltKP.getPublicKey().getBytes().length + " " + Arrays.toString(seasaltKP.getPublicKey().getBytes()));
+        Assertions.assertTrue(seasalt.verify(realMsg, jwsObject.getSignature().decode(), seasaltKP.getPublicKey().getBytes()));
     }
 }
