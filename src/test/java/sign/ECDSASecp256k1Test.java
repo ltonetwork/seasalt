@@ -6,14 +6,26 @@ import com.ltonetwork.seasalt.sign.ECDSA;
 import com.ltonetwork.seasalt.sign.ECDSARecovery;
 import com.ltonetwork.seasalt.sign.ECDSASignature;
 import com.ltonetwork.seasalt.sign.Signature;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.util.Arrays;
 import java.util.Random;
 
 public class ECDSASecp256k1Test {
@@ -94,5 +106,39 @@ public class ECDSASecp256k1Test {
         Signature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
 
         Assertions.assertFalse(secp256k1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
+    }
+
+    @Test
+    public void testSignWithJWT() throws JOSEException {
+        byte[] msg = "test".getBytes();
+
+        // Generate an EC key pair
+        ECKey ecJWK = new ECKeyGenerator(Curve.P_256)
+                .generate();
+        ECKey ecPublicJWK = ecJWK.toPublicJWK();
+
+        // Create the EC signer
+        JWSSigner signer = new ECDSASigner(ecJWK);
+
+        // Creates the JWS object with payload
+        JWSObject jwsObject = new JWSObject(
+                new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(ecJWK.getKeyID()).build(),
+                new Payload(msg));
+
+        // Compute the EC signature
+        jwsObject.sign(signer);
+
+        // Serialize the JWS to compact form
+        String s = jwsObject.serialize();
+
+        // The recipient creates a verifier with the public EC key
+        JWSVerifier verifier = new ECDSAVerifier(ecPublicJWK);
+
+        // Verify the EC signature
+        Assertions.assertTrue(jwsObject.verify(verifier));
+        Assertions.assertArrayEquals(msg, jwsObject.getPayload().toBytes());
+
+        ECDSA seasalt = new ECDSA("secp256k1");
+        Assertions.assertTrue(seasalt.verify(jwsObject.getPayload().toBytes(), jwsObject.getSignature().decode(), ecPublicJWK.toPublicKey().getEncoded()));
     }
 }
