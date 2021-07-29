@@ -13,6 +13,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.StandardCharset;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.math.ec.ECPoint;
@@ -144,12 +145,7 @@ public class ECDSASecp256k1Test {
 
 
         ECDSA seasalt = new ECDSA("secp256k1");
-        byte[] realMsg = hasher.hash(
-            Base64.getUrlEncoder().encode(jwsObject.getHeader().toString().getBytes(StandardCharsets.UTF_8)) +
-            "." +
-            Base64.getUrlEncoder().encode(jwsObject.getPayload().toString().getBytes(StandardCharsets.UTF_8)) +
-            "test"
-        ).getBytes();
+        byte[] realMsg = jwsObject.getSigningInput();
         byte[] privateKeyValue = ecJWK.getD().decode();
         KeyPair seasaltKP = seasalt.keyPairFromSecretKey(privateKeyValue);
 
