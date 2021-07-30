@@ -16,18 +16,25 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.StandardCharset;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.math.ec.ECConstants;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
@@ -86,11 +93,17 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testVerify() {
-        KeyPair kp = secp256k1.keyPair();
-        byte[] msg = hasher.hash("test").getBytes();
-        Signature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
+        for(int i=0; i<50; i++){
+            Random rd = new Random();
+            byte[] msg = new byte[64];
+            rd.nextBytes(msg);
 
-        Assertions.assertTrue(secp256k1.verify(msg, sig, kp.getPublicKey().getBytes()));
+            KeyPair kp = secp256k1.keyPair();
+//            byte[] msg = hasher.hash("test").getBytes();
+            Signature sig = secp256k1.signDetached(hasher.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
+
+            Assertions.assertTrue(secp256k1.verify(hasher.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
+        }
     }
 
     @Test
@@ -114,7 +127,7 @@ public class ECDSASecp256k1Test {
     }
 
     @Test
-    public void testSignWithJWT() throws JOSEException {
+    public void testSignWithJWT() throws Exception {
         byte[] msg = "test".getBytes();
 
         // Generate an EC key pair
@@ -148,10 +161,16 @@ public class ECDSASecp256k1Test {
         byte[] realMsg = jwsObject.getSigningInput();
         byte[] privateKeyValue = ecJWK.getD().decode();
         KeyPair seasaltKP = seasalt.keyPairFromSecretKey(privateKeyValue);
+        byte[] seasaltSignature = seasalt.signDetached(realMsg, seasaltKP.getPrivateKey()).getBytes();
 
-        System.out.println("Signature JWS: " + jwsObject.getSignature().decode().length + " " + Arrays.toString(jwsObject.getSignature().decode()));
-        System.out.println("Private: " + privateKeyValue.length + " " + Arrays.toString(privateKeyValue));
-        System.out.println("Public: " + seasaltKP.getPublicKey().getBytes().length + " " + Arrays.toString(seasaltKP.getPublicKey().getBytes()));
+        System.out.println("Signature JWS: " + jwsObject.getSignature().decode().length + "b " + Arrays.toString(jwsObject.getSignature().decode()));
+        System.out.println("Signature Sea: " + seasaltSignature.length + "b " + Arrays.toString(seasaltSignature));
+        System.out.println();
+        System.out.println("Private JWS: " + privateKeyValue.length + "b " + Arrays.toString(privateKeyValue));
+        System.out.println("Private Sea: " + seasaltKP.getPrivateKey().getBytes().length + "b " + Arrays.toString(seasaltKP.getPrivateKey().getBytes()));
+        System.out.println();
+        System.out.println("Public JWK: " + ecPublicJWK.toECPublicKey().getEncoded().length + "b " + Arrays.toString(ecPublicJWK.toECPublicKey().getEncoded()));
+        System.out.println("Public Sea: " + seasaltKP.getPublicKey().getBytes().length + "b " + Arrays.toString(seasaltKP.getPublicKey().getBytes()));
         Assertions.assertTrue(seasalt.verify(realMsg, jwsObject.getSignature().decode(), seasaltKP.getPublicKey().getBytes()));
     }
 }
