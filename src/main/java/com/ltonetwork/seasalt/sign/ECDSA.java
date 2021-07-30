@@ -26,7 +26,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
     @Override
     public ECDSASignature signDetached(byte[] msg, byte[] privateKey) {
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(this.digest));
-        signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
+        signer.init(true, new ECPrivateKeyParameters(new BigInteger(1, privateKey), domain));
         BigInteger[] signature = signer.generateSignature(msg);
 
         BigInteger r = signature[0];

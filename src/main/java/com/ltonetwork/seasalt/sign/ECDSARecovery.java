@@ -74,7 +74,7 @@ public class ECDSARecovery implements Signer {
 
     public ECDSASignature signDetached(byte[] msg, byte[] privateKey) {
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(this.digest));
-        signer.init(true, new ECPrivateKeyParameters(new BigInteger(privateKey), domain));
+        signer.init(true, new ECPrivateKeyParameters(new BigInteger(1, privateKey), domain));
         BigInteger[] signature = signer.generateSignature(msg);
 
         BigInteger r = signature[0];
@@ -313,7 +313,7 @@ public class ECDSARecovery implements Signer {
      * @return BigInteger encoded public key
      */
     private byte[] privateToPublic(byte[] privKey) {
-        ECPoint point = publicPointFromPrivate(new BigInteger(privKey));
+        ECPoint point = publicPointFromPrivate(new BigInteger(1, privKey));
 
         byte[] encoded = point.getEncoded(false);
         return new BigInteger(1, Arrays.copyOfRange(encoded, 1, encoded.length)).toByteArray(); // remove prefix
@@ -376,7 +376,7 @@ public class ECDSARecovery implements Signer {
      *
      * @return byte representation of the BigInteger, without sign bit
      */
-    protected byte[] toBytesPadded(BigInteger value, int length) {
+    public byte[] toBytesPadded(BigInteger value, int length) {
         byte[] result = new byte[length];
         byte[] bytes = value.toByteArray();
 
