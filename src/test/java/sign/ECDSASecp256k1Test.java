@@ -1,5 +1,6 @@
 package sign;
 
+import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.Hasher;
 import com.ltonetwork.seasalt.sign.ECDSA;
@@ -10,9 +11,12 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.StandardCharset;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -29,8 +33,10 @@ import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import java.math.BigInteger;
@@ -93,14 +99,14 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testVerify() {
+        Random rd = new Random();
+        byte[] msg = new byte[64];
+        rd.nextBytes(msg);
+        KeyPair kp = secp256k1.keyPair();
         for(int i=0; i<50; i++){
-            Random rd = new Random();
-            byte[] msg = new byte[64];
-            rd.nextBytes(msg);
-
-            KeyPair kp = secp256k1.keyPair();
 //            byte[] msg = hasher.hash("test").getBytes();
             Signature sig = secp256k1.signDetached(hasher.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
+            System.out.println(Arrays.toString(sig.getBytes()));
 
             Assertions.assertTrue(secp256k1.verify(hasher.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
         }
@@ -132,6 +138,7 @@ public class ECDSASecp256k1Test {
 
         // Generate an EC key pair
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1)
+                .keyID("123")
                 .generate();
         ECKey ecPublicJWK = ecJWK.toPublicJWK();
 
@@ -160,6 +167,7 @@ public class ECDSASecp256k1Test {
         ECDSA seasalt = new ECDSA("secp256k1");
         byte[] realMsg = jwsObject.getSigningInput();
         byte[] privateKeyValue = ecJWK.getD().decode();
+        byte[] publicKeyValue = ecPublicJWK.toECPublicKey().getEncoded();
         KeyPair seasaltKP = seasalt.keyPairFromSecretKey(privateKeyValue);
         byte[] seasaltSignature = seasalt.signDetached(realMsg, seasaltKP.getPrivateKey()).getBytes();
 
@@ -169,8 +177,63 @@ public class ECDSASecp256k1Test {
         System.out.println("Private JWS: " + privateKeyValue.length + "b " + Arrays.toString(privateKeyValue));
         System.out.println("Private Sea: " + seasaltKP.getPrivateKey().getBytes().length + "b " + Arrays.toString(seasaltKP.getPrivateKey().getBytes()));
         System.out.println();
-        System.out.println("Public JWK: " + ecPublicJWK.toECPublicKey().getEncoded().length + "b " + Arrays.toString(ecPublicJWK.toECPublicKey().getEncoded()));
+        System.out.println("Public JWS: " + publicKeyValue.length + "b " + Arrays.toString(publicKeyValue));
         System.out.println("Public Sea: " + seasaltKP.getPublicKey().getBytes().length + "b " + Arrays.toString(seasaltKP.getPublicKey().getBytes()));
-        Assertions.assertTrue(seasalt.verify(realMsg, jwsObject.getSignature().decode(), seasaltKP.getPublicKey().getBytes()));
+        System.out.println();
+        System.out.println("JWS verify JWS sig: " + jwsObject.verify(verifier));
+        System.out.println("Sea verify JWS sig: " + seasalt.verify(realMsg, jwsObject.getSignature().decode(), seasaltKP.getPublicKey().getBytes()));
     }
+
+//    JWK Object has to be signed from the JWK library, signature obtained from other place can't be injected (incompatible state)
+//    @Test
+//    public void testVerifyWithJWT() {
+//        //Generate EC key pair with P-256 curve
+//        KeyFactory kf = KeyFactory.getInstance("EC");
+//        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privateKeyValue));
+//        PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(publicKeyValue));
+//        java.security.KeyPair keyPair = new java.security.KeyPair(publicKey, privateKey);
+//
+//        //Convert to JWK format
+//        JWK jwk = new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.getPublic())
+//                .privateKey((ECPrivateKey) keyPair.getPrivate())
+//                .keyID("456")
+//                .build();
+//
+//
+//        //Creates the JWS object with payload
+//        JWSObject jwsObject2 = new JWSObject(
+//                new JWSHeader.Builder(JWSAlgorithm.ES256K).keyID(ecJWK.getKeyID()).build(),
+//                new Payload(msg));
+//
+//        //The recipient creates a verifier with the public EC key
+//        JWSVerifier verifier2 = new ECDSAVerifier(jwk.toPublicJWK().toECKey());
+//
+//        jwsObject2.verify(verifier2);
+//    }
+
+    @Test
+    public void testSignWithJavaSecurity() throws Exception {
+        final String SPEC = "secp256k1";
+        final String ALGO = "SHA256withECDSA";
+
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec(SPEC);
+        KeyPairGenerator g = KeyPairGenerator.getInstance("EC");
+        g.initialize(ecSpec, new SecureRandom());
+        java.security.KeyPair keypair = g.generateKeyPair();
+        PublicKey publicKey = keypair.getPublic();
+        PrivateKey privateKey = keypair.getPrivate();
+
+        byte[] msg = "test".getBytes();
+
+        java.security.Signature ecdsa = java.security.Signature.getInstance(ALGO);
+        ecdsa.initSign(privateKey);
+        ecdsa.update(msg);
+        byte[] signature = ecdsa.sign();
+
+        ecdsa.initVerify(publicKey);
+        ecdsa.update(msg);
+        boolean result = ecdsa.verify(signature);
+        Assertions.assertTrue(result);
+    }
+
 }
