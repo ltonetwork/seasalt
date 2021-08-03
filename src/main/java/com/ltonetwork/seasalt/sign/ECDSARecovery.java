@@ -356,7 +356,7 @@ public class ECDSARecovery implements Signer {
      *
      * @return the signature in a canonicalised form
      */
-    protected BigInteger toCanonicalised(BigInteger s) {
+    public BigInteger toCanonicalised(BigInteger s) {
         if (!isCanonical(s)) {
             // The order of the curve is the number of valid points that exist on that curve.
             // If S is in the upper half of the number of valid points, then bring it back to
