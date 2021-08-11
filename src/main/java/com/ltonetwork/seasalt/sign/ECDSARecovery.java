@@ -17,7 +17,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.math.ec.ECAlgorithms;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
-import org.bouncycastle.math.ec.custom.sec.*;
+import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve;
 
 import java.math.BigInteger;
 import java.security.*;
@@ -269,7 +269,7 @@ public class ECDSARecovery implements Signer {
     }
 
     private KeyPair generateKeyPair(SecureRandom seed) {
-        KeyPairGenerator keyPairGenerator = null;
+        KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256k1");

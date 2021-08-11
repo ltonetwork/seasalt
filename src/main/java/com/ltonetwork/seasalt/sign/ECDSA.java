@@ -1,6 +1,5 @@
 package com.ltonetwork.seasalt.sign;
 
-import com.ltonetwork.seasalt.Binary;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
