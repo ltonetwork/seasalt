@@ -30,10 +30,10 @@ public class ECDSA extends ECDSARecovery implements Signer {
         BigInteger[] signature = signer.generateSignature(msg);
 
         BigInteger r = signature[0];
-        BigInteger s = toCanonicalised(signature[1]);
+        BigInteger s = Utils.toCanonicalised(signature[1]);
 
-        byte[] rArr = toBytesPadded(r, 32);
-        byte[] sArr = toBytesPadded(s, 32);
+        byte[] rArr = Utils.toBytesPadded(r, 32);
+        byte[] sArr = Utils.toBytesPadded(s, 32);
         return new ECDSASignature(rArr, sArr);
     }
 

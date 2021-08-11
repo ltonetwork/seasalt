@@ -78,7 +78,7 @@ public class ECDSARecovery implements Signer {
         BigInteger[] signature = signer.generateSignature(msg);
 
         BigInteger r = signature[0];
-        BigInteger s = toCanonicalised(signature[1]);
+        BigInteger s = Utils.toCanonicalised(signature[1]);
 
         int recId = -1;
         BigInteger publicKey = new BigInteger(privateToPublic(privateKey));
@@ -95,8 +95,8 @@ public class ECDSARecovery implements Signer {
         }
         int headerByte = recId + 27;
 
-        byte[] rArr = toBytesPadded(r, 32);
-        byte[] sArr = toBytesPadded(s, 32);
+        byte[] rArr = Utils.toBytesPadded(r, 32);
+        byte[] sArr = Utils.toBytesPadded(s, 32);
         byte[] vArr = new byte[]{(byte) headerByte};
 
         return new ECDSASignature(rArr, sArr, vArr);
@@ -335,68 +335,4 @@ public class ECDSARecovery implements Signer {
         }
         return new FixedPointCombMultiplier().multiply(curve.getG(), privKey);
     }
-
-    /**
-     * @return true if the S component is "low", that means it is below
-     * HALF_CURVE_ORDER. See <a
-     * href="https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures">
-     * BIP62</a>.
-     */
-    private boolean isCanonical(BigInteger s) {
-        return s.compareTo(HALF_CURVE_ORDER) <= 0;
-    }
-
-    /**
-     * Will automatically adjust the S component to be less than or equal to half the curve order,
-     * if necessary. This is required because for every signature (r,s) the signature (r, -s (mod
-     * N)) is a valid signature of the same message. However, we dislike the ability to modify the
-     * bits of a Bitcoin transaction after it's been signed, as that violates various assumed
-     * invariants. Thus in future only one of those forms will be considered legal and the other
-     * will be banned.
-     *
-     * @return the signature in a canonicalised form
-     */
-    public BigInteger toCanonicalised(BigInteger s) {
-        if (!isCanonical(s)) {
-            // The order of the curve is the number of valid points that exist on that curve.
-            // If S is in the upper half of the number of valid points, then bring it back to
-            // the lower half. Otherwise, imagine that
-            //    N = 10
-            //    s = 8, so (-8 % 10 == 2) thus both (r, 8) and (r, 2) are valid solutions.
-            //    10 - 8 == 2, giving us always the latter solution, which is canonical.
-            return curve.getN().subtract(s);
-        } else {
-            return s;
-        }
-    }
-
-    /**
-     * Converts BigInteger to byte array, without the sign bit.
-     * The toByteArray() adds a prefix for negative numbers, however, in ECDSA we do not requir
-     *
-     * @return byte representation of the BigInteger, without sign bit
-     */
-    public byte[] toBytesPadded(BigInteger value, int length) {
-        byte[] result = new byte[length];
-        byte[] bytes = value.toByteArray();
-
-        int bytesLength;
-        int srcOffset;
-        if (bytes[0] == 0) {
-            bytesLength = bytes.length - 1;
-            srcOffset = 1;
-        } else {
-            bytesLength = bytes.length;
-            srcOffset = 0;
-        }
-
-        if (bytesLength > length) {
-            throw new RuntimeException("Input is too large to put in byte array of size " + length);
-        }
-
-        int destOffset = length - bytesLength;
-        System.arraycopy(bytes, srcOffset, result, destOffset, bytesLength);
-        return result;
-    }
-
 }

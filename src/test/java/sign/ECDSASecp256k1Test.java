@@ -2,10 +2,7 @@ package sign;
 
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.Hasher;
-import com.ltonetwork.seasalt.sign.ECDSA;
-import com.ltonetwork.seasalt.sign.ECDSARecovery;
-import com.ltonetwork.seasalt.sign.ECDSASignature;
-import com.ltonetwork.seasalt.sign.Signature;
+import com.ltonetwork.seasalt.sign.*;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -178,39 +175,7 @@ public class ECDSASecp256k1Test {
 
         // Seasalt
         KeyPair seasaltKp = secp256k1.keyPairFromSecretKey(privateKey.getS().toByteArray());
-        byte[] rsSignature = derToRS(signature);
+        byte[] rsSignature = Utils.derToRS(signature);
         Assertions.assertTrue(secp256k1.verify(msgHashed, rsSignature, seasaltKp));
-    }
-
-    private byte[] derToRS(byte[] derSig) throws Exception {
-        ASN1Primitive asn1 = toAsn1Primitive(derSig);
-        if (asn1 instanceof ASN1Sequence) {
-            ASN1Sequence asn1Sequence = (ASN1Sequence) asn1;
-            ASN1Encodable[] asn1Encodables = asn1Sequence.toArray();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BigInteger r = asn1EncodableToBigInteger(asn1Encodables[0]);
-            BigInteger s = secp256k1.toCanonicalised(asn1EncodableToBigInteger(asn1Encodables[1]));
-            outputStream.write(secp256k1.toBytesPadded(r, 32));
-            outputStream.write(secp256k1.toBytesPadded(s, 32));
-            return outputStream.toByteArray();
-        }
-        return new byte[0];
-    }
-
-    private BigInteger asn1EncodableToBigInteger(ASN1Encodable asn1Encodable) {
-        ASN1Primitive asn1Primitive = asn1Encodable.toASN1Primitive();
-        if (asn1Primitive instanceof ASN1Integer) {
-            ASN1Integer asn1Integer = (ASN1Integer) asn1Primitive;
-            return asn1Integer.getValue();
-        }
-        return new BigInteger(new byte[0]);
-    }
-
-    private ASN1Primitive toAsn1Primitive(byte[] data) throws Exception {
-        try (ByteArrayInputStream inStream = new ByteArrayInputStream(data);
-             ASN1InputStream asnInputStream = new ASN1InputStream(inStream))
-        {
-            return asnInputStream.readObject();
-        }
     }
 }
