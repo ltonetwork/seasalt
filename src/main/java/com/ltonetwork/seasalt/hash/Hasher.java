@@ -3,7 +3,11 @@ package com.ltonetwork.seasalt.hash;
 import com.ltonetwork.seasalt.Binary;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import java.security.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+
 
 public class Hasher {
 
