@@ -1,5 +1,7 @@
 package sign;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
@@ -38,6 +40,20 @@ public class Ed25519Test {
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
+    }
+
+    @Test
+    public void testKeyPairFromSeedAndNonce() {
+        byte[] seed = new byte[]{-72, -39, -90, -96, 104, -56, -55, -33, -112, 4, -57, 50, -99, 55, -72, -116, 102, -113, -39, -88, -48, -103, -34, -60, 76, -51, -78, 92, 32, -53, -46, 115};
+
+        KeyPair myKeyPair = ed25519.keyPairFromSeed(seed);
+
+        Assertions.assertArrayEquals(
+                myKeyPair.getPrivateKey().getBytes(),
+                new byte[]{83, -69, -105, 5, 58, 122, -47, -83, 63, 15, -105, -56, -117, 48, 88, 79, 96, -102, 119, 47, -42, -40, 43, 110, -124, -38, 105, 12, -2, -54, -55, -94, -64, -54, 94, -105, 47, 81, 79, 39, 31, -38, -89, 12, -104, -96, -40, 86, 9, -76, 100, -56, 86, 33, 29, -105, -112, 29, 102, -4, 77, 120, 57, -47});
+        Assertions.assertArrayEquals(
+                myKeyPair.getPublicKey().getBytes(),
+                new byte[]{-64, -54, 94, -105, 47, 81, 79, 39, 31, -38, -89, 12, -104, -96, -40, 86, 9, -76, 100, -56, 86, 33, 29, -105, -112, 29, 102, -4, 77, 120, 57, -47});
     }
 
     @Test
