@@ -3,30 +3,59 @@ package com.ltonetwork.seasalt.hash;
 import com.ltonetwork.seasalt.Binary;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
+import java.security.*;
 
 public class Hasher {
 
-    MessageDigest md;
+    private static MessageDigest md;
 
-    public Hasher(MessageDigest md) {
-        Security.addProvider(new BouncyCastleProvider());
-        this.md = md;
-    }
-
-    public Hasher(String algorithm) throws NoSuchAlgorithmException, NoSuchProviderException {
-        Security.addProvider(new BouncyCastleProvider());
-        this.md = MessageDigest.getInstance(algorithm, "BC");
-    }
-
-    public Binary hash(byte[] msg) {
+    public static Binary hash(byte[] msg, String algorithm) {
+        addSecurityProvider();
+        getDigest(algorithm);
         return new Binary(md.digest(msg));
     }
 
-    public Binary hash(String msg) {
+    public static Binary hash(String msg, String algorithm) {
+        addSecurityProvider();
+        getDigest(algorithm);
         return new Binary(md.digest(msg.getBytes()));
+    }
+
+    public static Binary hash(Binary msg, String algorithm) {
+        addSecurityProvider();
+        getDigest(algorithm);
+        return new Binary(md.digest(msg.getBytes()));
+    }
+
+    public static Binary hash(byte[] msg, MessageDigest algorithm) {
+        addSecurityProvider();
+        md = algorithm;
+        return new Binary(md.digest(msg));
+    }
+
+    public static Binary hash(String msg, MessageDigest algorithm) {
+        addSecurityProvider();
+        md = algorithm;
+        return new Binary(md.digest(msg.getBytes()));
+    }
+
+    public static Binary hash(Binary msg, MessageDigest algorithm) {
+        addSecurityProvider();
+        md = algorithm;
+        return new Binary(md.digest(msg.getBytes()));
+    }
+
+    private static void getDigest(String algorithm) {
+        try {
+            md = MessageDigest.getInstance(algorithm, "BC");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Unknown algorithm" + algorithm);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException("Could not find BC provider");
+        }
+    }
+
+    private static void addSecurityProvider() {
+        Security.addProvider(new BouncyCastleProvider());
     }
 }
