@@ -44,11 +44,9 @@ public class Ed25519Test {
 
     @Test
     public void testKeyPairFromSeedAndNonce() {
-        byte[] seed = new byte[]{-42, 20, -66, -118, -75, 113, 95, -8, -85, 70, 50, 81, -76, -75, -59, 113, -18, 101, 110, 98, 67, -74, -6, 66, 6, -40, 22, -18, -111, 121, -23, -61};
-        int nonce = 1;
-        byte[] actual_seed = Bytes.concat(Ints.toByteArray(nonce), seed);
+        byte[] seed = new byte[]{-72, -39, -90, -96, 104, -56, -55, -33, -112, 4, -57, 50, -99, 55, -72, -116, 102, -113, -39, -88, -48, -103, -34, -60, 76, -51, -78, 92, 32, -53, -46, 115};
 
-        KeyPair myKeyPair = ed25519.keyPairFromSeed(actual_seed);
+        KeyPair myKeyPair = ed25519.keyPairFromSeed(seed);
 
         Assertions.assertArrayEquals(
                 myKeyPair.getPrivateKey().getBytes(),

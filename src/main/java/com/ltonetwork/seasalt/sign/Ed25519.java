@@ -57,11 +57,7 @@ public class Ed25519 implements Signer {
 
     private byte[] generatePrivateKey(byte[] seed) {
         try {
-            Hasher sha256 = new Hasher("SHA-256");
-            Hasher blake2b256 = new Hasher("Blake2b-256");
-            byte[] hashed_seed = blake2b256.hash(seed).getBytes();
-            byte[] hashed_seed_2 = sha256.hash(hashed_seed).getBytes();
-            return sha256.hash(hashed_seed_2).getBytes();
+            return new Hasher("SHA-256").hash(seed).getBytes();
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new RuntimeException("Could not find SHA-256 and/or Blake2b-256 hashing algorithms");
         }
