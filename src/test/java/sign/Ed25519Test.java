@@ -4,7 +4,6 @@ import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
-import com.ltonetwork.seasalt.hash.Hasher;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import com.ltonetwork.seasalt.sign.Signature;
 import org.junit.jupiter.api.Assertions;
@@ -12,9 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.Arrays;
 import java.util.Random;
 
 public class Ed25519Test {
