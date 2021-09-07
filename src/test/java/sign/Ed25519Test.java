@@ -4,20 +4,30 @@ import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import com.ltonetwork.seasalt.sign.Signature;
+import org.apache.commons.codec.DecoderException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Locale;
 import java.util.Random;
+
+import com.goterl.lazysodium.LazySodiumJava;
 
 public class Ed25519Test {
 
     Ed25519 ed25519;
+    Hasher hasher;
+    LazySodiumJava lazySodium;
 
     @BeforeEach
-    public void init() {
+    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
         ed25519 = new Ed25519();
+        hasher = new Hasher("Sha-256");
+        lazySodium = new LazySodiumJava(new SodiumJava());
     }
 
     @Test
@@ -99,5 +109,53 @@ public class Ed25519Test {
         Signature sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
         Assertions.assertFalse(ed25519.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
+    }
+
+    @Test
+    public void testVerifyWithNaCl() {
+        byte[] msgHash = hasher.hash("test").getBytes();
+
+        KeyPair kpSeaSalt = ed25519.keyPair();
+        Signature sigSeaSalt = ed25519.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
+
+        Assertions.assertTrue(
+            lazySodium.cryptoSignVerifyDetached(
+                sigSeaSalt.getBytes(),
+                msgHash,
+                msgHash.length,
+                kpSeaSalt.getPublicKey().getBytes()
+            )
+        );
+    }
+
+    @Test
+    public void testSignWithNaCl() throws SodiumException, DecoderException {
+        String msgHash = hasher.hash("test").getHex();
+
+        com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignKeypair();
+        String sigNaCl = lazySodium.cryptoSignDetached(msgHash,kpNaCl.getSecretKey());
+
+        Assertions.assertTrue(ed25519.verify(msgHash, Binary.fromHex(sigNaCl).getBytes(), kpNaCl.getPublicKey().getAsBytes()));
+    }
+
+    @Test
+    public void testNaClSeasaltFull() throws SodiumException, DecoderException {
+        byte[] b = new byte[20];
+        new Random().nextBytes(b);
+        String msgHash = hasher.hash("test").getHex();
+
+        // NaCl
+        com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignKeypair();
+        String sigNaCl = lazySodium.cryptoSignDetached(msgHash,kpNaCl.getSecretKey());
+
+        Assertions.assertTrue(ed25519.verify(msgHash, Binary.fromHex(sigNaCl).getBytes(), kpNaCl.getPublicKey().getAsBytes()));
+
+        // SEASALT
+        KeyPair kpSeaSalt = ed25519.keyPairFromSecretKey(kpNaCl.getSecretKey().getAsBytes());
+        Signature sigSeaSalt = ed25519.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
+
+        Assertions.assertTrue(ed25519.verify(msgHash, sigSeaSalt, kpSeaSalt));
+
+        Assertions.assertEquals(sigSeaSalt.getHex().toUpperCase(Locale.ROOT), sigNaCl);
     }
 }
