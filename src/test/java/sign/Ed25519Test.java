@@ -70,9 +70,7 @@ public class Ed25519Test {
         byte[] sk = new byte[12];
         rd.nextBytes(sk);
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            ed25519.keyPairFromSecretKey(sk);
-        });
+        Assertions.assertThrows(IllegalArgumentException.class, () -> ed25519.keyPairFromSecretKey(sk));
     }
 
     @Test
