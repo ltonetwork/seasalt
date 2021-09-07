@@ -31,7 +31,7 @@ public class ECDSARecoverySecp256K1Test {
     @BeforeEach
     public void init() {
         secp256k1 = new ECDSARecovery("secp256k1");
-        hashAlgorithm = "SHA-256";
+        hashAlgorithm = "Keccak-256";
     }
 
     @Test
