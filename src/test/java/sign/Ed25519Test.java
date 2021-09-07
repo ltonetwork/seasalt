@@ -1,7 +1,5 @@
 package sign;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;

@@ -27,12 +27,12 @@ import java.util.Random;
 public class ECDSASecp256k1Test {
 
     ECDSA secp256k1;
-    Hasher hasher;
+    String hashAlgorithm;
 
     @BeforeEach
-    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public void init() {
         secp256k1 = new ECDSA(SECNamedCurves.getByName("secp256k1"));
-        hasher = new Hasher("Sha-256");
+        hashAlgorithm = "Sha-256";
     }
 
     @Test
@@ -68,7 +68,7 @@ public class ECDSASecp256k1Test {
     @Test
     public void testSigns() {
         KeyPair kp = secp256k1.keyPair();
-        byte[] msg = hasher.hash("test").getBytes();
+        byte[] msg = Hasher.hash("test", hashAlgorithm).getBytes();
 
         Assertions.assertDoesNotThrow(() -> {
             secp256k1.signDetached(msg, kp);
@@ -82,9 +82,9 @@ public class ECDSASecp256k1Test {
         for (int i = 0; i < 50; i++) {
             byte[] msg = new byte[64];
             rd.nextBytes(msg);
-            Signature sig = secp256k1.signDetached(hasher.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
+            Signature sig = secp256k1.signDetached(Hasher.hash(msg, hashAlgorithm).getBytes(), kp.getPrivateKey().getBytes());
 
-            Assertions.assertTrue(secp256k1.verify(hasher.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
+            Assertions.assertTrue(secp256k1.verify(Hasher.hash(msg, hashAlgorithm).getBytes(), sig, kp.getPublicKey().getBytes()));
         }
     }
 
@@ -93,7 +93,7 @@ public class ECDSASecp256k1Test {
         ECDSARecovery secp256k1Recovery = new ECDSARecovery(SECNamedCurves.getByName("secp256k1"));
         KeyPair kpRecovery = secp256k1Recovery.keyPair();
 
-        byte[] msg = hasher.hash("test").getBytes();
+        byte[] msg = Hasher.hash("test", hashAlgorithm).getBytes();
         ECDSASignature sig = secp256k1.signDetached(msg, kpRecovery.getPrivateKey().getBytes());
 
         Assertions.assertTrue(secp256k1.verify(msg, sig, kpRecovery.getPublicKey().getBytes()));
@@ -110,7 +110,7 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testSignWithJWT() throws Exception {
-        byte[] msg = hasher.hash("test").getBytes();
+        byte[] msg = Hasher.hash("test", hashAlgorithm).getBytes();
 
         // Generate an EC key pair
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1)
@@ -139,7 +139,7 @@ public class ECDSASecp256k1Test {
 
         // Seasalt
         byte[] realMsg = jwsObject.getSigningInput();
-        byte[] realMsgHashed = hasher.hash(realMsg).getBytes();
+        byte[] realMsgHashed = Hasher.hash(realMsg, hashAlgorithm).getBytes();
         KeyPair seasaltKP = secp256k1.keyPairFromSecretKey(ecJWK.getD().decode());
         Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP));
     }
@@ -157,7 +157,7 @@ public class ECDSASecp256k1Test {
         ECPrivateKey privateKey = (ECPrivateKey) keypair.getPrivate();
 
         byte[] msg = "test".getBytes();
-        byte[] msgHashed = hasher.hash(msg).getBytes();
+        byte[] msgHashed = Hasher.hash(msg, hashAlgorithm).getBytes();
 
         java.security.Signature ecdsa = java.security.Signature.getInstance(ALGO);
         ecdsa.initSign(privateKey);

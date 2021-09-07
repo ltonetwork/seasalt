@@ -26,12 +26,12 @@ import java.util.Random;
 public class ECDSARecoverySecp256K1Test {
 
     ECDSARecovery secp256k1;
-    Hasher hasher;
+    String hashAlgorithm;
 
     @BeforeEach
-    public void init() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public void init() {
         secp256k1 = new ECDSARecovery("secp256k1");
-        hasher = new Hasher("Keccak-256");
+        hashAlgorithm = "SHA-256";
     }
 
     @Test
@@ -68,7 +68,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testSigns() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = hasher.hash("test").getBytes();
+        byte[] msgHash = Hasher.hash("test", hashAlgorithm).getBytes();
 
         KeyPair kp = secp256k1.keyPair();
 
@@ -81,7 +81,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerify() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = hasher.hash("test").getBytes();
+        byte[] msgHash = Hasher.hash("test", hashAlgorithm).getBytes();
 
         KeyPair kp = secp256k1.keyPair();
 
@@ -95,7 +95,7 @@ public class ECDSARecoverySecp256K1Test {
         ECDSARecovery secp256k1NoRecovery = new ECDSA(SECNamedCurves.getByName("secp256k1"));
         KeyPair kpRecovery = secp256k1NoRecovery.keyPair();
 
-        byte[] msgHash = hasher.hash("test").getBytes();
+        byte[] msgHash = Hasher.hash("test", hashAlgorithm).getBytes();
         ECDSASignature sig = secp256k1.signDetached(msgHash, kpRecovery.getPrivateKey().getBytes());
 
         Assertions.assertTrue(secp256k1.verify(msgHash, sig, kpRecovery.getPublicKey().getBytes()));
@@ -105,7 +105,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerifyFail() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = hasher.hash("test").getBytes();
+        byte[] msgHash = Hasher.hash("test", hashAlgorithm).getBytes();
 
         KeyPair kp = secp256k1.keyPair();
         Signature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
@@ -117,7 +117,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerifyWithWeb3() throws SignatureException {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = hasher.hash("test").getBytes();
+        byte[] msgHash = Hasher.hash("test", hashAlgorithm).getBytes();
 
         KeyPair kpSeaSalt = secp256k1.keyPair();
         ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
