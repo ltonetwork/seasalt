@@ -8,7 +8,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 
-
 public class Hasher {
 
     private static MessageDigest md;
