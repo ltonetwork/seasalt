@@ -17,7 +17,10 @@ import org.web3j.crypto.Sign;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.util.Random;
 
 public class ECDSARecoverySecp256K1Test {

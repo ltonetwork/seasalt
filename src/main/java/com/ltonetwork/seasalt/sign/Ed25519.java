@@ -1,6 +1,5 @@
 package com.ltonetwork.seasalt.sign;
 
-import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.Hasher;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
