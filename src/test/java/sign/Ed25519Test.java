@@ -1,7 +1,5 @@
 package sign;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
@@ -72,9 +70,7 @@ public class Ed25519Test {
         byte[] sk = new byte[12];
         rd.nextBytes(sk);
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            ed25519.keyPairFromSecretKey(sk);
-        });
+        Assertions.assertThrows(IllegalArgumentException.class, () -> ed25519.keyPairFromSecretKey(sk));
     }
 
     @Test

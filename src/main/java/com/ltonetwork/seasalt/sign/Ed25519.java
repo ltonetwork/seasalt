@@ -1,13 +1,11 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.KeyPair;
-import com.ltonetwork.seasalt.hash.Hasher;
+import com.ltonetwork.seasalt.hash.SHA;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
 public class Ed25519 implements Signer {
@@ -55,11 +53,7 @@ public class Ed25519 implements Signer {
     }
 
     private byte[] generatePrivateKey(byte[] seed) {
-        try {
-            return new Hasher("SHA-256").hash(seed).getBytes();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException("Could not find SHA-256 and/or Blake2b-256 hashing algorithms");
-        }
+        return SHA.SHA256Hash(seed).getBytes();
     }
 
     private byte[] concatenatedPrivateToSeed(byte[] privateKey) {
