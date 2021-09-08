@@ -182,6 +182,12 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>9.11.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.goterl/lazysodium-java -->
+        <dependency>
+            <groupId>com.goterl</groupId>
+            <artifactId>lazysodium-java</artifactId>
+            <version>5.1.1</version>
+        </dependency>
     </dependencies>
 
     <distributionManagement>
