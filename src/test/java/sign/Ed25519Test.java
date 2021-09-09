@@ -111,6 +111,26 @@ public class Ed25519Test {
     }
 
     @Test
+    public void testSameKeysAsNaClFromSeed() throws SodiumException {
+        Random rd = new Random();
+        byte[] seed = new byte[64];
+        rd.nextBytes(seed);
+
+        com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignSeedKeypair(SHA.SHA256Hash(seed).getBytes());
+        KeyPair kpSeaSalt = ed25519.keyPairFromSeed(seed);
+
+        Assertions.assertArrayEquals(
+                kpNaCl.getSecretKey().getAsBytes(),
+                kpSeaSalt.getPrivateKey().getBytes()
+        );
+
+        Assertions.assertArrayEquals(
+                kpNaCl.getPublicKey().getAsBytes(),
+                kpSeaSalt.getPublicKey().getBytes()
+        );
+    }
+
+    @Test
     public void testVerifyWithNaCl() {
         byte[] msgHash = SHA.SHA256Hash("test").getBytes();
 
