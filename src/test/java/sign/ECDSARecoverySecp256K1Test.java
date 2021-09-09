@@ -1,7 +1,7 @@
 package sign;
 
 import com.ltonetwork.seasalt.KeyPair;
-import com.ltonetwork.seasalt.hash.Keccak;
+import com.ltonetwork.seasalt.hash.Keccak256;
 import com.ltonetwork.seasalt.sign.ECDSA;
 import com.ltonetwork.seasalt.sign.ECDSARecovery;
 import com.ltonetwork.seasalt.sign.ECDSASignature;
@@ -66,7 +66,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testSigns() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = Keccak.keccak256Hash("test").getBytes();
+        byte[] msgHash = Keccak256.hash("test").getBytes();
 
         KeyPair kp = secp256k1.keyPair();
 
@@ -79,7 +79,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerify() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = Keccak.keccak256Hash("test").getBytes();
+        byte[] msgHash = Keccak256.hash("test").getBytes();
 
         KeyPair kp = secp256k1.keyPair();
 
@@ -93,7 +93,7 @@ public class ECDSARecoverySecp256K1Test {
         ECDSARecovery secp256k1NoRecovery = new ECDSA(SECNamedCurves.getByName("secp256k1"));
         KeyPair kpRecovery = secp256k1NoRecovery.keyPair();
 
-        byte[] msgHash = Keccak.keccak256Hash("test").getBytes();
+        byte[] msgHash = Keccak256.hash("test").getBytes();
         ECDSASignature sig = secp256k1.signDetached(msgHash, kpRecovery.getPrivateKey().getBytes());
 
         Assertions.assertTrue(secp256k1.verify(msgHash, sig, kpRecovery.getPublicKey().getBytes()));
@@ -103,7 +103,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerifyFail() {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = Keccak.keccak256Hash("test").getBytes();
+        byte[] msgHash = Keccak256.hash("test").getBytes();
 
         KeyPair kp = secp256k1.keyPair();
         Signature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
@@ -115,7 +115,7 @@ public class ECDSARecoverySecp256K1Test {
     public void testVerifyWithWeb3() throws SignatureException {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        byte[] msgHash = Keccak.keccak256Hash("test").getBytes();
+        byte[] msgHash = Keccak256.hash("test").getBytes();
 
         KeyPair kpSeaSalt = secp256k1.keyPair();
         ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
