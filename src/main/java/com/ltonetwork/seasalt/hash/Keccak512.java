@@ -5,16 +5,13 @@ import org.bouncycastle.crypto.digests.KeccakDigest;
 
 import java.nio.charset.StandardCharsets;
 
-public class Keccak512 {
+public class Keccak512 extends Hasher {
 
     private static KeccakDigest digest;
 
     public static Binary hash(byte[] value) {
         if(digest == null) digest = new KeccakDigest(512);
-        byte[] rawHash = new byte[digest.getDigestSize()];
-        digest.update(value, 0, value.length);
-        digest.doFinal(rawHash, 0);
-        return new Binary(rawHash);
+        return hash(value, digest);
     }
 
     public static Binary hash(String value) {

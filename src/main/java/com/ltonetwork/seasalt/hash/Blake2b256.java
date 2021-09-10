@@ -5,16 +5,13 @@ import org.bouncycastle.crypto.digests.Blake2bDigest;
 
 import java.nio.charset.StandardCharsets;
 
-public class Blake2b256 {
+public class Blake2b256 extends Hasher {
 
     private static Blake2bDigest digest;
 
     public static Binary hash(byte[] value) {
         if(digest == null) digest = new Blake2bDigest(256);
-        byte[] rawHash = new byte[digest.getDigestSize()];
-        digest.update(value, 0, value.length);
-        digest.doFinal(rawHash, 0);
-        return new Binary(rawHash);
+        return hash(value, digest);
     }
 
     public static Binary hash(String value) {

@@ -5,16 +5,13 @@ import org.bouncycastle.crypto.digests.SHA1Digest;
 
 import java.nio.charset.StandardCharsets;
 
-public class SHA1 {
+public class SHA1 extends Hasher {
 
-    private static SHA1Digest SHA1Digest;
+    private static SHA1Digest digest;
 
     public static Binary hash(byte[] value) {
-        if(SHA1Digest == null) SHA1Digest = new SHA1Digest();
-        byte[] rawHash = new byte[SHA1Digest.getDigestSize()];
-        SHA1Digest.update(value, 0, value.length);
-        SHA1Digest.doFinal(rawHash, 0);
-        return new Binary(rawHash);
+        if(digest == null) digest = new SHA1Digest();
+        return hash(value, digest);
     }
 
     public static Binary hash(String value) {
