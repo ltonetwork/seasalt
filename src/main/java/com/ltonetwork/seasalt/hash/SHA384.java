@@ -17,4 +17,8 @@ public class SHA384 extends Hasher {
     public static Binary hash(String value) {
         return hash(value.getBytes(StandardCharsets.UTF_8));
     }
+
+    public static Binary hash(Binary value) {
+        return hash(value.getBytes());
+    }
 }
