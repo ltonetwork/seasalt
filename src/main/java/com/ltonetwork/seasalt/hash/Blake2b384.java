@@ -1,16 +1,16 @@
 package com.ltonetwork.seasalt.hash;
 
 import com.ltonetwork.seasalt.Binary;
-import org.bouncycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.crypto.digests.Blake2bDigest;
 
 import java.nio.charset.StandardCharsets;
 
-public class SHA1 extends Hasher {
+public class Blake2b384 extends Hasher {
 
-    private static SHA1Digest digest;
+    private static Blake2bDigest digest;
 
     public static Binary hash(byte[] value) {
-        if(digest == null) digest = new SHA1Digest();
+        if(digest == null) digest = new Blake2bDigest(384);
         return hash(value, digest);
     }
 

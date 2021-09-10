@@ -4,7 +4,7 @@ import com.goterl.lazysodium.SodiumJava;
 import com.goterl.lazysodium.exceptions.SodiumException;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
-import com.ltonetwork.seasalt.hash.SHA;
+import com.ltonetwork.seasalt.hash.SHA256;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import com.ltonetwork.seasalt.sign.Signature;
 import org.apache.commons.codec.DecoderException;
@@ -116,7 +116,7 @@ public class Ed25519Test {
         byte[] seed = new byte[64];
         rd.nextBytes(seed);
 
-        com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignSeedKeypair(SHA.SHA256Hash(seed).getBytes());
+        com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignSeedKeypair(SHA256.hash(seed).getBytes());
         KeyPair kpSeaSalt = ed25519.keyPairFromSeed(seed);
 
         Assertions.assertArrayEquals(
@@ -132,7 +132,7 @@ public class Ed25519Test {
 
     @Test
     public void testVerifyWithNaCl() {
-        byte[] msgHash = SHA.SHA256Hash("test").getBytes();
+        byte[] msgHash = SHA256.hash("test").getBytes();
 
         KeyPair kpSeaSalt = ed25519.keyPair();
         Signature sigSeaSalt = ed25519.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
@@ -149,7 +149,7 @@ public class Ed25519Test {
 
     @Test
     public void testSignWithNaCl() throws SodiumException, DecoderException {
-        String msgHash = SHA.SHA256Hash("test").getHex();
+        String msgHash = SHA256.hash("test").getHex();
 
         com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignKeypair();
         String sigNaCl = lazySodium.cryptoSignDetached(msgHash,kpNaCl.getSecretKey());
@@ -161,7 +161,7 @@ public class Ed25519Test {
     public void testNaClSeasaltFull() throws SodiumException, DecoderException {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        String msgHash = SHA.SHA256Hash("test").getHex();
+        String msgHash = SHA256.hash("test").getHex();
 
         // NaCl
         com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignKeypair();

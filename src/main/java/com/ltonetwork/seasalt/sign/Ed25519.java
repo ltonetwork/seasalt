@@ -1,7 +1,7 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.KeyPair;
-import com.ltonetwork.seasalt.hash.SHA;
+import com.ltonetwork.seasalt.hash.SHA256;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
@@ -53,7 +53,7 @@ public class Ed25519 implements Signer {
     }
 
     private byte[] generatePrivateKey(byte[] seed) {
-        return SHA.SHA256Hash(seed).getBytes();
+        return SHA256.hash(seed).getBytes();
     }
 
     private byte[] concatenatedPrivateToSeed(byte[] privateKey) {
