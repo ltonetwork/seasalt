@@ -24,9 +24,6 @@ import java.util.Arrays;
  * <p>
  * Note that this is not the same base58 as used by Flickr, which you may find referenced around the Internet.
  * <p>
- * You may want to consider working with {@link PrefixedChecksummedBytes} instead, which
- * adds support for testing the prefix and suffix bytes commonly found in addresses.
- * <p>
  * Satoshi explains: why base-58 instead of standard base-64 encoding?
  * <ul>
  * <li>Don't want 0OIl characters that look the same in some fonts and
