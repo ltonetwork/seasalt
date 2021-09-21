@@ -2,7 +2,6 @@ package com.ltonetwork.seasalt;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.bitcoinj.core.Base58;
 
 import java.util.Base64;
 
