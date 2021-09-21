@@ -4,7 +4,7 @@
     <groupId>com.ltonetwork</groupId>
     <artifactId>seasalt</artifactId>
 
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <name>Seasalt</name>
     <description>
         NaCl and libsodium compatible library for public-key cryptography and hashing using Bouncy Castle.
@@ -163,12 +163,6 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.15</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.bitcoinj/bitcoinj-core -->
-        <dependency>
-            <groupId>org.bitcoinj</groupId>
-            <artifactId>bitcoinj-core</artifactId>
-            <version>0.15.10</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.web3j/core -->
         <dependency>
