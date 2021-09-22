@@ -4,7 +4,7 @@ import com.ltonetwork.seasalt.Binary;
 import org.bouncycastle.crypto.Digest;
 
 public abstract class Hasher {
-    protected static Binary hash(byte[] value, Digest digest){
+    protected synchronized static Binary hash(byte[] value, Digest digest){
         byte[] rawHash = new byte[digest.getDigestSize()];
         digest.update(value, 0, value.length);
         digest.doFinal(rawHash, 0);

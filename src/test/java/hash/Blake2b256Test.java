@@ -23,4 +23,10 @@ public class Blake2b256Test {
         String hexRes = "928b20366943e2afd11ebc0eae2e53a93bf177a4fcf35bcc64d503704e65e202";
         Assertions.assertEquals(hexRes, Blake2b256.hash(new Binary("test".getBytes())).getHex());
     }
+
+    @Test
+    public void testBlake2b_256_multithread() {
+        String hexRes = "928b20366943e2afd11ebc0eae2e53a93bf177a4fcf35bcc64d503704e65e202";
+        Assertions.assertEquals(hexRes, Blake2b256.hash(new Binary("test".getBytes())).getHex());
+    }
 }
