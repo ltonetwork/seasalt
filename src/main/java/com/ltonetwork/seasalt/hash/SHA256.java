@@ -9,7 +9,7 @@ public class SHA256 extends Hasher {
 
     private static SHA256Digest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new SHA256Digest();
         return hash(value, digest);
     }

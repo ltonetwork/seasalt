@@ -9,7 +9,7 @@ public class SHA3512 extends Hasher {
 
     private static SHA3Digest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new SHA3Digest(512);
         return hash(value, digest);
     }

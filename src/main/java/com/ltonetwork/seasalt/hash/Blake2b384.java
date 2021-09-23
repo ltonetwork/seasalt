@@ -9,7 +9,7 @@ public class Blake2b384 extends Hasher {
 
     private static Blake2bDigest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new Blake2bDigest(384);
         return hash(value, digest);
     }

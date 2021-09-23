@@ -9,7 +9,7 @@ public class Keccak384 extends Hasher {
 
     private static KeccakDigest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new KeccakDigest(384);
         return hash(value, digest);
     }
