@@ -2,6 +2,7 @@ package hash;
 
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.hash.Blake2b256;
+import com.ltonetwork.seasalt.hash.SHA256;
 import edu.umd.cs.mtc.MultithreadedTestCase;
 import edu.umd.cs.mtc.TestFramework;
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +21,14 @@ public class ThreadingTest extends MultithreadedTestCase {
         Assertions.assertEquals(
                 hexRes,
                 Blake2b256.hash(new Binary("threading_2".getBytes())).getHex()
+        );
+    }
+
+    public void thread3() {
+        String hexRes = "21e0b81f01f004c51bee8954c15244efd78c88015d7d1b639f7f974cd85c45da";
+        Assertions.assertEquals(
+                hexRes,
+                SHA256.hash(new Binary("threading_3".getBytes())).getHex()
         );
     }
 
