@@ -3,7 +3,7 @@ package sign;
 import com.goterl.lazysodium.SodiumJava;
 import com.goterl.lazysodium.exceptions.SodiumException;
 import com.ltonetwork.seasalt.Binary;
-import com.ltonetwork.seasalt.KeyPair;
+import com.ltonetwork.seasalt.keypair.KeyPair;
 import com.ltonetwork.seasalt.hash.SHA256;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import com.ltonetwork.seasalt.sign.Signature;

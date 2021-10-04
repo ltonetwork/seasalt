@@ -1,4 +1,6 @@
-package com.ltonetwork.seasalt;
+package com.ltonetwork.seasalt.keypair;
+
+import com.ltonetwork.seasalt.Binary;
 
 public class KeyPair {
     Binary publicKey;
