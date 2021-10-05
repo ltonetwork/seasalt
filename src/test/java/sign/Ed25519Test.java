@@ -68,7 +68,7 @@ public class Ed25519Test {
     public void testKeyPairFromSecretKey() {
         Binary sk = ed25519.keyPair().getPrivateKey();
 
-        Ed25519KeyPair myKeyPair = ed25519.keyPairFromSecretKey(sk);
+        KeyPair myKeyPair = ed25519.keyPairFromSecretKey(sk);
 
         Assertions.assertArrayEquals(sk.getBytes(), myKeyPair.getPrivateKey().getBytes());
         Assertions.assertNotNull(myKeyPair.getPublicKey());

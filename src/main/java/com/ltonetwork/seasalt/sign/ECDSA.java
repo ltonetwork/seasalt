@@ -15,16 +15,33 @@ import java.util.Arrays;
 
 public class ECDSA extends ECDSARecovery implements Signer {
 
-    public ECDSA(X9ECParameters curve, Digest digest) {
+    final boolean compressed;
+
+    public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
         super(curve, digest);
+        this.compressed = compressed;
+    }
+
+    public ECDSA(X9ECParameters curve, Digest digest) {
+        this(curve, digest, true);
+    }
+
+    public ECDSA(X9ECParameters curve, boolean compressed) {
+        super(curve);
+        this.compressed = compressed;
     }
 
     public ECDSA(X9ECParameters curve) {
+        this(curve, true);
+    }
+
+    public ECDSA(String curve, boolean compressed) {
         super(curve);
+        this.compressed = compressed;
     }
 
     public ECDSA(String curve) {
-        super(curve);
+        this(curve, true);
     }
 
     @Override
@@ -33,7 +50,8 @@ public class ECDSA extends ECDSARecovery implements Signer {
         return new ECDSAKeyPair(
                 keypair.getPublicKey(),
                 ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1
+                ECDSAKeyType.SECP256K1,
+                this.compressed
         );
     }
 
@@ -43,7 +61,8 @@ public class ECDSA extends ECDSARecovery implements Signer {
         return new ECDSAKeyPair(
                 keypair.getPublicKey(),
                 ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1
+                ECDSAKeyType.SECP256K1,
+                this.compressed
         );
     }
 
@@ -53,7 +72,8 @@ public class ECDSA extends ECDSARecovery implements Signer {
         return new ECDSAKeyPair(
                 keypair.getPublicKey(),
                 ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1
+                ECDSAKeyType.SECP256K1,
+                this.compressed
         );
     }
 
@@ -63,7 +83,8 @@ public class ECDSA extends ECDSARecovery implements Signer {
         return new ECDSAKeyPair(
                 keypair.getPublicKey(),
                 ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1
+                ECDSAKeyType.SECP256K1,
+                this.compressed
         );
     }
 
@@ -138,18 +159,5 @@ public class ECDSA extends ECDSARecovery implements Signer {
             }
         }
         return false;
-    }
-
-    private byte[] decompressPublicKey(byte[] publicKey) {
-
-        ECPoint point = curve.getCurve().decodePoint(publicKey);
-        byte[] x = point.getXCoord().getEncoded();
-        byte[] y = point.getYCoord().getEncoded();
-
-        byte[] decomp = new byte[64];
-        System.arraycopy(x, 0, decomp, 0, x.length);
-        System.arraycopy(y, 0, decomp, x.length, y.length);
-
-        return decomp;
     }
 }
