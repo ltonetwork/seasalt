@@ -53,7 +53,7 @@ public class ECDSASecp256k1Test {
     }
 
     @Test
-    public void testKeyPairFromSecretKey() throws DecoderException {
+    public void testKeyPairFromSecretKey() {
         byte[] sk = secp256k1.keyPair().getPrivateKey().getBytes();
 
         ECDSAKeyPair myKeyPair = secp256k1.keyPairFromSecretKey(sk);
@@ -81,7 +81,7 @@ public class ECDSASecp256k1Test {
             rd.nextBytes(msg);
             Signature sig = secp256k1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
 
-            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey()));
+            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
         }
     }
 
@@ -138,7 +138,7 @@ public class ECDSASecp256k1Test {
         byte[] realMsg = jwsObject.getSigningInput();
         byte[] realMsgHashed = SHA256.hash(realMsg).getBytes();
         ECDSAKeyPair seasaltKP = secp256k1.keyPairFromSecretKey(ecJWK.getD().decode());
-        Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP.getPublicKey()));
+        Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP));
     }
 
     @Test

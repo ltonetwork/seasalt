@@ -19,6 +19,11 @@ public class ECDSAKeyPair extends KeyPair {
         this.keyType = keyType;
     }
 
+    public ECDSAKeyPair(byte[] publicKey, byte[] privateKey) {
+        super(publicKey, privateKey);
+        this.keyType = ECDSAKeyType.SECP256K1;
+    }
+
     @Override
     public Binary getPublicKey() {
         switch(keyType) {

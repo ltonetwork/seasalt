@@ -125,7 +125,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
         byte[] s = signatureData.getS();
 
         // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
-        // after decompressing the key this header byte is omitted, thus resulting in failing tx
+        // after decompressing the key this header byte is omitted, thus resulting in failing verification
         byte[] publicKeyLeadingZero = new byte[65];
         publicKeyLeadingZero[0] = (byte) 0;
         System.arraycopy(publicKey, 0, publicKeyLeadingZero, 1, 64);

@@ -3,8 +3,9 @@ package sign;
 import com.goterl.lazysodium.SodiumJava;
 import com.goterl.lazysodium.exceptions.SodiumException;
 import com.ltonetwork.seasalt.Binary;
-import com.ltonetwork.seasalt.keypair.KeyPair;
+import com.ltonetwork.seasalt.keypair.Ed25519KeyPair;
 import com.ltonetwork.seasalt.hash.SHA256;
+import com.ltonetwork.seasalt.keypair.KeyPair;
 import com.ltonetwork.seasalt.sign.Ed25519;
 import com.ltonetwork.seasalt.sign.Signature;
 import org.apache.commons.codec.DecoderException;
@@ -31,7 +32,7 @@ public class Ed25519Test {
 
     @Test
     public void testKeyPair() {
-        KeyPair myKeyPair = ed25519.keyPair();
+        Ed25519KeyPair myKeyPair = ed25519.keyPair();
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -43,7 +44,7 @@ public class Ed25519Test {
         byte[] b = new byte[64];
         rd.nextBytes(b);
 
-        KeyPair myKeyPair = ed25519.keyPairFromSeed(b);
+        Ed25519KeyPair myKeyPair = ed25519.keyPairFromSeed(b);
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -53,7 +54,7 @@ public class Ed25519Test {
     public void testKeyPairFromSeedAndNonce() {
         byte[] seed = new byte[]{-72, -39, -90, -96, 104, -56, -55, -33, -112, 4, -57, 50, -99, 55, -72, -116, 102, -113, -39, -88, -48, -103, -34, -60, 76, -51, -78, 92, 32, -53, -46, 115};
 
-        KeyPair myKeyPair = ed25519.keyPairFromSeed(seed);
+        Ed25519KeyPair myKeyPair = ed25519.keyPairFromSeed(seed);
 
         Assertions.assertArrayEquals(
                 myKeyPair.getPrivateKey().getBytes(),
@@ -67,7 +68,7 @@ public class Ed25519Test {
     public void testKeyPairFromSecretKey() {
         Binary sk = ed25519.keyPair().getPrivateKey();
 
-        KeyPair myKeyPair = ed25519.keyPairFromSecretKey(sk);
+        Ed25519KeyPair myKeyPair = ed25519.keyPairFromSecretKey(sk);
 
         Assertions.assertArrayEquals(sk.getBytes(), myKeyPair.getPrivateKey().getBytes());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -84,7 +85,7 @@ public class Ed25519Test {
 
     @Test
     public void testSigns() {
-        KeyPair kp = ed25519.keyPair();
+        Ed25519KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
 
         Assertions.assertDoesNotThrow(() -> {
@@ -94,7 +95,7 @@ public class Ed25519Test {
 
     @Test
     public void testVerify() {
-        KeyPair kp = ed25519.keyPair();
+        Ed25519KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
         Signature sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
@@ -103,7 +104,7 @@ public class Ed25519Test {
 
     @Test
     public void testVerifyFail() {
-        KeyPair kp = ed25519.keyPair();
+        Ed25519KeyPair kp = ed25519.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
         Signature sig = ed25519.signDetached(msg, kp.getPrivateKey());
 
@@ -117,7 +118,7 @@ public class Ed25519Test {
         rd.nextBytes(seed);
 
         com.goterl.lazysodium.utils.KeyPair kpNaCl = lazySodium.cryptoSignSeedKeypair(SHA256.hash(seed).getBytes());
-        KeyPair kpSeaSalt = ed25519.keyPairFromSeed(seed);
+        Ed25519KeyPair kpSeaSalt = ed25519.keyPairFromSeed(seed);
 
         Assertions.assertArrayEquals(
                 kpNaCl.getSecretKey().getAsBytes(),
@@ -134,7 +135,7 @@ public class Ed25519Test {
     public void testVerifyWithNaCl() {
         byte[] msgHash = SHA256.hash("test").getBytes();
 
-        KeyPair kpSeaSalt = ed25519.keyPair();
+        Ed25519KeyPair kpSeaSalt = ed25519.keyPair();
         Signature sigSeaSalt = ed25519.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
 
         Assertions.assertTrue(
@@ -170,7 +171,7 @@ public class Ed25519Test {
         Assertions.assertTrue(ed25519.verify(msgHash, Binary.fromHex(sigNaCl).getBytes(), kpNaCl.getPublicKey().getAsBytes()));
 
         // SEASALT
-        KeyPair kpSeaSalt = ed25519.keyPairFromSecretKey(kpNaCl.getSecretKey().getAsBytes());
+        Ed25519KeyPair kpSeaSalt = ed25519.keyPairFromSecretKey(kpNaCl.getSecretKey().getAsBytes());
         Signature sigSeaSalt = ed25519.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
 
         Assertions.assertTrue(ed25519.verify(msgHash, sigSeaSalt, kpSeaSalt));

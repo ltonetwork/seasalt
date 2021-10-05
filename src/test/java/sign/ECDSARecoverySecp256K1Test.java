@@ -96,7 +96,7 @@ public class ECDSARecoverySecp256K1Test {
         byte[] msgHash = Keccak256.hash("test").getBytes();
         ECDSASignature sig = secp256k1.signDetached(msgHash, kpRecovery.getPrivateKey().getBytes());
 
-        Assertions.assertTrue(secp256k1.verify(msgHash, sig, kpRecovery.getPublicKeyUncompressed().getBytes()));
+        Assertions.assertTrue(secp256k1.verify(msgHash, sig, kpRecovery.getPublicKey().getBytes()));
     }
 
     @Test
