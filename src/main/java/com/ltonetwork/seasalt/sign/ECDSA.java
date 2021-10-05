@@ -67,10 +67,6 @@ public class ECDSA extends ECDSARecovery implements Signer {
     }
 
     private Binary ECPointNoHeader(Binary point, int targetLength) {
-        System.out.println(targetLength);
-        System.out.println(point.getBytes().length);
-        System.out.println(Arrays.toString(point.getBytes()));
-        System.out.println("---");
         byte[] out = new byte[targetLength];
         if(point.getBytes().length != targetLength) {
             System.arraycopy(point.getBytes(), 1, out, 0, targetLength);
@@ -128,8 +124,6 @@ public class ECDSA extends ECDSARecovery implements Signer {
     private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
         byte[] r = signatureData.getR();
         byte[] s = signatureData.getS();
-
-        System.out.println(Arrays.toString(publicKey));
 
         for (int i = 0; i < 4; i++) {
             BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);

@@ -28,16 +28,16 @@ public class ECDSAKeyPair extends KeyPair {
     }
 
     private byte[] compressPoint(byte[] p) {
-        int n = p.length;
-        byte[] x = new byte[(n + 1)/2];
-        byte[] y = new byte[n - x.length];
+        byte[] x = new byte[32];
+        byte[] y = new byte[32];
 
-        System.arraycopy(p, 0, x, 0, x.length);
+        if(p[0] == (byte) 0) System.arraycopy(p, 1, x, 0, x.length);
+        else System.arraycopy(p, 0, x, 0, x.length);
         System.arraycopy(p, x.length, y, 0, y.length);
 
         byte[] compressed = new byte[x.length + 1];
         compressed[0] = (byte) (2 + ( y[ y.length-1 ] & 1 ));
-        System.arraycopy(x, 0, compressed, 0, x.length);
+        System.arraycopy(x, 0, compressed, 1, x.length);
 
         return compressed;
     }
