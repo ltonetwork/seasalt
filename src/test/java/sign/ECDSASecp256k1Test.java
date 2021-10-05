@@ -1,6 +1,5 @@
 package sign;
 
-import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.hash.SHA256;
 import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
 import com.ltonetwork.seasalt.sign.*;
@@ -37,8 +36,8 @@ public class ECDSASecp256k1Test {
     public void testKeyPair() {
         ECDSAKeyPair myKeyPair = secp256k1.keyPair();
 
-//        Assertions.assertNotNull(myKeyPair.getPrivateKey());
-//        Assertions.assertNotNull(myKeyPair.getPublicKeyUncompressed());
+        Assertions.assertNotNull(myKeyPair.getPrivateKey());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
@@ -50,7 +49,7 @@ public class ECDSASecp256k1Test {
         ECDSAKeyPair myKeyPair = secp256k1.keyPairFromSeed(b);
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
-        Assertions.assertNotNull(myKeyPair.getPublicKeyUncompressed());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
@@ -58,13 +57,9 @@ public class ECDSASecp256k1Test {
         byte[] sk = secp256k1.keyPair().getPrivateKey().getBytes();
 
         ECDSAKeyPair myKeyPair = secp256k1.keyPairFromSecretKey(sk);
-        byte[] new_sk = Binary.fromHex("51897b64e85c3f714bba707e867914295a1377a7463a9dae8ea6a8b914246319").getBytes();
-
-        System.out.println(myKeyPair.getPrivateKey().getHex());
-        System.out.println(myKeyPair.getPublicKeyUncompressed().getHex());
 
         Assertions.assertArrayEquals(sk, myKeyPair.getPrivateKey().getBytes());
-        Assertions.assertNotNull(myKeyPair.getPublicKeyUncompressed());
+        Assertions.assertNotNull(myKeyPair.getPublicKey());
     }
 
     @Test
@@ -86,7 +81,7 @@ public class ECDSASecp256k1Test {
             rd.nextBytes(msg);
             Signature sig = secp256k1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
 
-            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKeyUncompressed().getBytes()));
+            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey()));
         }
     }
 
@@ -98,7 +93,7 @@ public class ECDSASecp256k1Test {
         byte[] msg = SHA256.hash("test").getBytes();
         ECDSASignature sig = secp256k1.signDetached(msg, kpRecovery.getPrivateKey().getBytes());
 
-        Assertions.assertTrue(secp256k1.verify(msg, sig, kpRecovery.getPublicKeyUncompressed().getBytes()));
+        Assertions.assertTrue(secp256k1.verify(msg, sig, kpRecovery.getPublicKey().getBytes()));
     }
 
     @Test
@@ -143,7 +138,7 @@ public class ECDSASecp256k1Test {
         byte[] realMsg = jwsObject.getSigningInput();
         byte[] realMsgHashed = SHA256.hash(realMsg).getBytes();
         ECDSAKeyPair seasaltKP = secp256k1.keyPairFromSecretKey(ecJWK.getD().decode());
-        Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP.getPublicKeyUncompressed()));
+        Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP.getPublicKey()));
     }
 
     @Test
@@ -174,6 +169,6 @@ public class ECDSASecp256k1Test {
         // Seasalt
         ECDSAKeyPair seasaltKp = secp256k1.keyPairFromSecretKey(privateKey.getS().toByteArray());
         byte[] rsSignature = Utils.derToRS(signature);
-        Assertions.assertTrue(secp256k1.verify(msgHashed, rsSignature, seasaltKp.getPublicKeyUncompressed()));
+        Assertions.assertTrue(secp256k1.verify(msgHashed, rsSignature, seasaltKp));
     }
 }

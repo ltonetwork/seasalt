@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -115,23 +116,40 @@ public class ECDSA extends ECDSARecovery implements Signer {
         System.arraycopy(signature, 0, r, 0, r.length);
         System.arraycopy(signature, r.length, s, 0, s.length);
 
-        //TODO: make it work with compressed
-        if(publicKey.length == 33) throw new IllegalArgumentException("You must use uncompressed key for verification");
-
-        return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
+        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
+        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
     }
 
     private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
         byte[] r = signatureData.getR();
         byte[] s = signatureData.getS();
 
+        // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
+        // after decompressing the key this header byte is omitted, thus resulting in failing tx
+        byte[] publicKeyLeadingZero = new byte[65];
+        publicKeyLeadingZero[0] = (byte) 0;
+        System.arraycopy(publicKey, 0, publicKeyLeadingZero, 1, 64);
+
         for (int i = 0; i < 4; i++) {
             BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);
             byte[] k = (potentialKey != null) ? potentialKey.toByteArray() : null;
-            if (k != null && Arrays.equals(publicKey, k)) {
+            if (k != null && (Arrays.equals(publicKey, k) || Arrays.equals(publicKeyLeadingZero, k))) {
                 return true;
             }
         }
         return false;
+    }
+
+    private byte[] decompressPublicKey(byte[] publicKey) {
+
+        ECPoint point = curve.getCurve().decodePoint(publicKey);
+        byte[] x = point.getXCoord().getEncoded();
+        byte[] y = point.getYCoord().getEncoded();
+
+        byte[] decomp = new byte[64];
+        System.arraycopy(x, 0, decomp, 0, x.length);
+        System.arraycopy(y, 0, decomp, x.length, y.length);
+
+        return decomp;
     }
 }
