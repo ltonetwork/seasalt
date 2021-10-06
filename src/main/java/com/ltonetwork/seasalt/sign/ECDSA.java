@@ -1,26 +1,100 @@
 package com.ltonetwork.seasalt.sign;
 
+import com.ltonetwork.seasalt.Binary;
+import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
+import com.ltonetwork.seasalt.keypair.ECDSAKeyType;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
 public class ECDSA extends ECDSARecovery implements Signer {
 
-    public ECDSA(X9ECParameters curve, Digest digest) {
+    final boolean compressed;
+
+    public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
         super(curve, digest);
+        this.compressed = compressed;
+    }
+
+    public ECDSA(X9ECParameters curve, Digest digest) {
+        this(curve, digest, true);
+    }
+
+    public ECDSA(X9ECParameters curve, boolean compressed) {
+        super(curve);
+        this.compressed = compressed;
     }
 
     public ECDSA(X9ECParameters curve) {
+        this(curve, true);
+    }
+
+    public ECDSA(String curve, boolean compressed) {
         super(curve);
+        this.compressed = compressed;
     }
 
     public ECDSA(String curve) {
-        super(curve);
+        this(curve, true);
+    }
+
+    @Override
+    public ECDSAKeyPair keyPair() {
+        ECDSAKeyPair keypair = super.keyPair();
+        return new ECDSAKeyPair(
+                keypair.getPublicKey(),
+                ECPointNoHeader(keypair.getPrivateKey(), 32),
+                ECDSAKeyType.SECP256K1,
+                this.compressed
+        );
+    }
+
+    @Override
+    public ECDSAKeyPair keyPairFromSeed(byte[] seed) {
+        ECDSAKeyPair keypair = super.keyPairFromSeed(seed);
+        return new ECDSAKeyPair(
+                keypair.getPublicKey(),
+                ECPointNoHeader(keypair.getPrivateKey(), 32),
+                ECDSAKeyType.SECP256K1,
+                this.compressed
+        );
+    }
+
+    @Override
+    public ECDSAKeyPair keyPairFromSecretKey(byte[] privateKey) {
+        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
+        return new ECDSAKeyPair(
+                keypair.getPublicKey(),
+                ECPointNoHeader(keypair.getPrivateKey(), 32),
+                ECDSAKeyType.SECP256K1,
+                this.compressed
+        );
+    }
+
+    @Override
+    public ECDSAKeyPair keyPairFromSecretKey(Binary privateKey) {
+        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
+        return new ECDSAKeyPair(
+                keypair.getPublicKey(),
+                ECPointNoHeader(keypair.getPrivateKey(), 32),
+                ECDSAKeyType.SECP256K1,
+                this.compressed
+        );
+    }
+
+    private Binary ECPointNoHeader(Binary point, int targetLength) {
+        byte[] out = new byte[targetLength];
+        if(point.getBytes().length != targetLength) {
+            System.arraycopy(point.getBytes(), 1, out, 0, targetLength);
+            return new Binary(out);
+        }
+        else return point;
     }
 
     @Override
@@ -63,17 +137,24 @@ public class ECDSA extends ECDSARecovery implements Signer {
         System.arraycopy(signature, 0, r, 0, r.length);
         System.arraycopy(signature, r.length, s, 0, s.length);
 
-        return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
+        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
+        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
     }
 
     private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
         byte[] r = signatureData.getR();
         byte[] s = signatureData.getS();
 
+        // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
+        // after decompressing the key this header byte is omitted, thus resulting in failing verification
+        byte[] publicKeyLeadingZero = new byte[65];
+        publicKeyLeadingZero[0] = (byte) 0;
+        System.arraycopy(publicKey, 0, publicKeyLeadingZero, 1, 64);
+
         for (int i = 0; i < 4; i++) {
             BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);
             byte[] k = (potentialKey != null) ? potentialKey.toByteArray() : null;
-            if (k != null && Arrays.equals(publicKey, k)) {
+            if (k != null && (Arrays.equals(publicKey, k) || Arrays.equals(publicKeyLeadingZero, k))) {
                 return true;
             }
         }

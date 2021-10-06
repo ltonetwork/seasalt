@@ -1,7 +1,8 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.Binary;
-import com.ltonetwork.seasalt.KeyPair;
+import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
+import com.ltonetwork.seasalt.keypair.ECDSAKeyType;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.asn1.x9.X9IntegerConverter;
@@ -49,12 +50,12 @@ public class ECDSARecovery implements Signer {
         this(SECNamedCurves.getByName(curve), new SHA256Digest());
     }
 
-    public KeyPair keyPair() {
+    public ECDSAKeyPair keyPair() {
         SecureRandom srSeed = new SecureRandom();
         return generateKeyPair(srSeed);
     }
 
-    public KeyPair keyPairFromSeed(byte[] seed) {
+    public ECDSAKeyPair keyPairFromSeed(byte[] seed) {
         SecureRandom srSeed = new SecureRandom(seed);
         return generateKeyPair(srSeed);
     }
@@ -63,12 +64,12 @@ public class ECDSARecovery implements Signer {
      * @param privateKey Private key bytes in ASN.1 format.
      * @return Key pair of the private key given and the derived public key.
      */
-    public KeyPair keyPairFromSecretKey(byte[] privateKey) {
+    public ECDSAKeyPair keyPairFromSecretKey(byte[] privateKey) {
         byte[] publicKey = privateToPublic(privateKey);
-        return new KeyPair(publicKey, privateKey);
+        return new ECDSAKeyPair(publicKey, privateKey, ECDSAKeyType.SECP256K1RECOVERY, false);
     }
 
-    public KeyPair keyPairFromSecretKey(Binary privateKey) {
+    public ECDSAKeyPair keyPairFromSecretKey(Binary privateKey) {
         return keyPairFromSecretKey(privateKey.getBytes());
     }
 
@@ -147,6 +148,16 @@ public class ECDSARecovery implements Signer {
      */
     protected boolean verifyRecoveryKey(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
         BigInteger pubKeyRecovered = signedMessageToKey(msgHash, signature);
+        if(publicKey.length == 33) {
+            byte[] publicKeyDecompressed = decompressPublicKey(publicKey);
+            // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
+            // after decompressing the key this header byte is omitted, thus resulting in failing verification
+            byte[] publicKeyLeadingZero = new byte[65];
+            publicKeyLeadingZero[0] = (byte) 0;
+            System.arraycopy(publicKeyDecompressed, 0, publicKeyLeadingZero, 1, 64);
+            return Arrays.equals(publicKeyDecompressed, pubKeyRecovered.toByteArray())||
+                    Arrays.equals(publicKeyLeadingZero, pubKeyRecovered.toByteArray());
+        }
         return Arrays.equals(publicKey, pubKeyRecovered.toByteArray());
     }
 
@@ -270,7 +281,7 @@ public class ECDSARecovery implements Signer {
         return curve.getCurve().decodePoint(compEnc);
     }
 
-    private KeyPair generateKeyPair(SecureRandom seed) {
+    private ECDSAKeyPair generateKeyPair(SecureRandom seed) {
         KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
@@ -278,7 +289,7 @@ public class ECDSARecovery implements Signer {
             keyPairGenerator.initialize(ecGenParameterSpec, seed);
             java.security.KeyPair javaKeyPair = keyPairGenerator.generateKeyPair();
             BigInteger[] decodedASN1Keys = decodeASN1KeyPair(javaKeyPair);
-            return new KeyPair(decodedASN1Keys[0].toByteArray(), decodedASN1Keys[1].toByteArray());
+            return new ECDSAKeyPair(decodedASN1Keys[0].toByteArray(), decodedASN1Keys[1].toByteArray(), ECDSAKeyType.SECP256K1RECOVERY, false);
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
             throw new RuntimeException("Unknown external dependency error");
@@ -336,5 +347,18 @@ public class ECDSARecovery implements Signer {
             privKey = privKey.mod(curve.getN());
         }
         return new FixedPointCombMultiplier().multiply(curve.getG(), privKey);
+    }
+
+    protected byte[] decompressPublicKey(byte[] publicKey) {
+
+        ECPoint point = curve.getCurve().decodePoint(publicKey);
+        byte[] x = point.getXCoord().getEncoded();
+        byte[] y = point.getYCoord().getEncoded();
+
+        byte[] decomp = new byte[64];
+        System.arraycopy(x, 0, decomp, 0, x.length);
+        System.arraycopy(y, 0, decomp, x.length, y.length);
+
+        return decomp;
     }
 }

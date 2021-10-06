@@ -1,7 +1,7 @@
 package sign;
 
-import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.SHA256;
+import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
 import com.ltonetwork.seasalt.sign.*;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
@@ -9,6 +9,7 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import org.apache.commons.codec.DecoderException;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testKeyPair() {
-        KeyPair myKeyPair = secp256k1.keyPair();
+        ECDSAKeyPair myKeyPair = secp256k1.keyPair();
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -45,7 +46,7 @@ public class ECDSASecp256k1Test {
         byte[] b = new byte[64];
         rd.nextBytes(b);
 
-        KeyPair myKeyPair = secp256k1.keyPairFromSeed(b);
+        ECDSAKeyPair myKeyPair = secp256k1.keyPairFromSeed(b);
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -55,7 +56,7 @@ public class ECDSASecp256k1Test {
     public void testKeyPairFromSecretKey() {
         byte[] sk = secp256k1.keyPair().getPrivateKey().getBytes();
 
-        KeyPair myKeyPair = secp256k1.keyPairFromSecretKey(sk);
+        ECDSAKeyPair myKeyPair = secp256k1.keyPairFromSecretKey(sk);
 
         Assertions.assertArrayEquals(sk, myKeyPair.getPrivateKey().getBytes());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
@@ -63,7 +64,7 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testSigns() {
-        KeyPair kp = secp256k1.keyPair();
+        ECDSAKeyPair kp = secp256k1.keyPair();
         byte[] msg = SHA256.hash("test").getBytes();
 
         Assertions.assertDoesNotThrow(() -> {
@@ -74,7 +75,7 @@ public class ECDSASecp256k1Test {
     @Test
     public void testVerify() {
         Random rd = new Random();
-        KeyPair kp = secp256k1.keyPair();
+        ECDSAKeyPair kp = secp256k1.keyPair();
         for (int i = 0; i < 50; i++) {
             byte[] msg = new byte[64];
             rd.nextBytes(msg);
@@ -87,7 +88,7 @@ public class ECDSASecp256k1Test {
     @Test
     public void testVerifyDifferentKp() {
         ECDSARecovery secp256k1Recovery = new ECDSARecovery(SECNamedCurves.getByName("secp256k1"));
-        KeyPair kpRecovery = secp256k1Recovery.keyPair();
+        ECDSAKeyPair kpRecovery = secp256k1Recovery.keyPair();
 
         byte[] msg = SHA256.hash("test").getBytes();
         ECDSASignature sig = secp256k1.signDetached(msg, kpRecovery.getPrivateKey().getBytes());
@@ -97,7 +98,7 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testVerifyFail() {
-        KeyPair kp = secp256k1.keyPair();
+        ECDSAKeyPair kp = secp256k1.keyPair();
         byte[] msg = "test".getBytes(StandardCharsets.UTF_8);
         Signature sig = secp256k1.signDetached(msg, kp.getPrivateKey().getBytes());
 
@@ -136,7 +137,7 @@ public class ECDSASecp256k1Test {
         // Seasalt
         byte[] realMsg = jwsObject.getSigningInput();
         byte[] realMsgHashed = SHA256.hash(realMsg).getBytes();
-        KeyPair seasaltKP = secp256k1.keyPairFromSecretKey(ecJWK.getD().decode());
+        ECDSAKeyPair seasaltKP = secp256k1.keyPairFromSecretKey(ecJWK.getD().decode());
         Assertions.assertTrue(secp256k1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP));
     }
 
@@ -166,7 +167,7 @@ public class ECDSASecp256k1Test {
         Assertions.assertTrue(result);
 
         // Seasalt
-        KeyPair seasaltKp = secp256k1.keyPairFromSecretKey(privateKey.getS().toByteArray());
+        ECDSAKeyPair seasaltKp = secp256k1.keyPairFromSecretKey(privateKey.getS().toByteArray());
         byte[] rsSignature = Utils.derToRS(signature);
         Assertions.assertTrue(secp256k1.verify(msgHashed, rsSignature, seasaltKp));
     }
