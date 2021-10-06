@@ -9,7 +9,6 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.apache.commons.codec.DecoderException;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +59,20 @@ public class ECDSASecp256k1Test {
 
         Assertions.assertArrayEquals(sk, myKeyPair.getPrivateKey().getBytes());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
+    }
+
+    @Test
+    public void testKeyPairCompression() {
+        ECDSAKeyPair myKeyPair = secp256k1.keyPair();
+
+        Assertions.assertTrue(myKeyPair.getPublicKey().getBytes().length == 33);
+
+        ECDSA secp256k1Uncomp = new ECDSA(SECNamedCurves.getByName("secp256k1"), false);
+        ECDSAKeyPair myKeyPairUncomp = secp256k1Uncomp.keyPair();
+
+        Assertions.assertTrue(
+                myKeyPairUncomp.getPublicKey().getBytes().length == 64 ||
+                myKeyPairUncomp.getPublicKey().getBytes().length == 65);
     }
 
     @Test

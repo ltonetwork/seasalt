@@ -38,6 +38,9 @@ public class ECDSARecoverySecp256K1Test {
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
         Assertions.assertNotNull(myKeyPair.getPublicKey());
+        Assertions.assertTrue(
+                myKeyPair.getPublicKey().getBytes().length == 64 ||
+                        myKeyPair.getPublicKey().getBytes().length == 65);
     }
 
     @Test
