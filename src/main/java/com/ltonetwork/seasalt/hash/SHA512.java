@@ -9,7 +9,7 @@ public class SHA512 extends Hasher {
 
     private static SHA512Digest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new SHA512Digest();
         return hash(value, digest);
     }

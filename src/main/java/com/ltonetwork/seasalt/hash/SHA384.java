@@ -9,7 +9,7 @@ public class SHA384 extends Hasher {
 
     private static SHA384Digest digest;
 
-    public static Binary hash(byte[] value) {
+    public synchronized static Binary hash(byte[] value) {
         if(digest == null) digest = new SHA384Digest();
         return hash(value, digest);
     }
