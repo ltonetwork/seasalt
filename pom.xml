@@ -4,7 +4,7 @@
     <groupId>com.ltonetwork</groupId>
     <artifactId>seasalt</artifactId>
 
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <name>Seasalt</name>
     <description>
         NaCl and libsodium compatible library for public-key cryptography and hashing using Bouncy Castle.
