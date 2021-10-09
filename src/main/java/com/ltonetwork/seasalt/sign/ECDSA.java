@@ -1,14 +1,12 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.Binary;
-import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
-import com.ltonetwork.seasalt.keypair.ECDSAKeyType;
+import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
-import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -45,47 +43,32 @@ public class ECDSA extends ECDSARecovery implements Signer {
     }
 
     @Override
-    public ECDSAKeyPair keyPair() {
-        ECDSAKeyPair keypair = super.keyPair();
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPair() {
+        return maybeCompress(super.keyPair());
     }
 
     @Override
-    public ECDSAKeyPair keyPairFromSeed(byte[] seed) {
-        ECDSAKeyPair keypair = super.keyPairFromSeed(seed);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSeed(byte[] seed) {
+        return maybeCompress(super.keyPairFromSeed(seed));
     }
 
     @Override
-    public ECDSAKeyPair keyPairFromSecretKey(byte[] privateKey) {
-        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSecretKey(byte[] privateKey) {
+        return maybeCompress(super.keyPairFromSecretKey(privateKey));
     }
 
     @Override
-    public ECDSAKeyPair keyPairFromSecretKey(Binary privateKey) {
-        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSecretKey(Binary privateKey) {
+        return maybeCompress(super.keyPairFromSecretKey(privateKey));
+    }
+
+    private KeyPair maybeCompress(KeyPair keypair) {
+        return compressed
+            ? new KeyPair(
+                new Binary(compressPublicKey(keypair.getPublicKey().getBytes())),
+                keypair.getPrivateKey()
+            )
+            : keypair;
     }
 
     private Binary ECPointNoHeader(Binary point, int targetLength) {
@@ -159,5 +142,19 @@ public class ECDSA extends ECDSARecovery implements Signer {
             }
         }
         return false;
+    }
+
+    private byte[] compressPublicKey(byte[] publicKey) {
+        BigInteger x;
+        BigInteger y;
+        if(publicKey.length == 65){
+            x = new BigInteger(1, Arrays.copyOfRange(publicKey, 1, 33));
+            y = new BigInteger(1, Arrays.copyOfRange(publicKey, 33, 65));
+        }
+        else {
+            x = new BigInteger(1, Arrays.copyOfRange(publicKey, 0, 32));
+            y = new BigInteger(1, Arrays.copyOfRange(publicKey, 32, 64));
+        }
+        return this.curve.getCurve().createPoint(x, y).getEncoded(true);
     }
 }

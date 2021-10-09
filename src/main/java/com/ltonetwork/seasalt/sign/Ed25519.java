@@ -1,6 +1,6 @@
 package com.ltonetwork.seasalt.sign;
 
-import com.ltonetwork.seasalt.keypair.Ed25519KeyPair;
+import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.hash.SHA256;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
@@ -9,24 +9,24 @@ import org.bouncycastle.crypto.signers.Ed25519Signer;
 import java.security.SecureRandom;
 
 public class Ed25519 implements Signer {
-    public Ed25519KeyPair keyPair() {
+    public KeyPair keyPair() {
         SecureRandom srSeed = new SecureRandom();
         return keyPairFromSeed(srSeed.generateSeed(64));
     }
 
-    public Ed25519KeyPair keyPairFromSeed(byte[] seed) {
+    public KeyPair keyPairFromSeed(byte[] seed) {
         byte[] privateKey = generatePrivateKey(seed);
         byte[] publicKey = privateToPublic(privateKey);
         byte[] concatenatedPrivateKey = new byte[64];
         System.arraycopy(privateKey, 0, concatenatedPrivateKey, 0, 32);
         System.arraycopy(publicKey, 0, concatenatedPrivateKey, 32, 32);
-        return new Ed25519KeyPair(publicKey, concatenatedPrivateKey);
+        return new KeyPair(publicKey, concatenatedPrivateKey);
     }
 
-    public Ed25519KeyPair keyPairFromSecretKey(byte[] privateKey) {
+    public KeyPair keyPairFromSecretKey(byte[] privateKey) {
         byte[] actualPrivateKey = concatenatedPrivateToSeed(privateKey);
         byte[] publicKey = privateToPublic(actualPrivateKey);
-        return new Ed25519KeyPair(publicKey, privateKey);
+        return new KeyPair(publicKey, privateKey);
     }
 
     public Signature signDetached(byte[] msg, byte[] privateKey) {
