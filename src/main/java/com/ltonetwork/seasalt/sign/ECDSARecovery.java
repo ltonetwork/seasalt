@@ -24,7 +24,7 @@ import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
 
-public class ECDSARecovery implements Signer {
+public class ECDSARecovery extends ECDSABase {
     final X9ECParameters curve;
     final ECDomainParameters domain;
     final BigInteger HALF_CURVE_ORDER;

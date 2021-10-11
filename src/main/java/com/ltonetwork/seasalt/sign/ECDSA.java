@@ -5,32 +5,35 @@ import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
+import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
 
-public class ECDSA extends ECDSARecovery implements Signer {
+public class ECDSA extends ECDSABase {
 
     final boolean compressed;
 
-    public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
-        super(curve, digest);
+    public ECDSA(X9ECParameters curve, ECGenParameterSpec spec, Digest digest, boolean compressed) {
+        super(curve, spec, digest);
         this.compressed = compressed;
     }
 
-    public ECDSA(X9ECParameters curve, Digest digest) {
-        this(curve, digest, true);
+    public ECDSA(X9ECParameters curve, ECGenParameterSpec spec, Digest digest) {
+        this(curve, spec, digest, true);
     }
 
-    public ECDSA(X9ECParameters curve, boolean compressed) {
-        super(curve);
+    public ECDSA(X9ECParameters curve, ECGenParameterSpec spec, boolean compressed) {
+        super(curve, spec);
         this.compressed = compressed;
     }
 
-    public ECDSA(X9ECParameters curve) {
-        this(curve, true);
+    public ECDSA(X9ECParameters curve, ECGenParameterSpec spec) {
+        this(curve, spec, true);
     }
 
     public ECDSA(String curve, boolean compressed) {
@@ -103,7 +106,16 @@ public class ECDSA extends ECDSARecovery implements Signer {
      * @return true if the signature is valid, false otherwise
      */
     public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        return verifyNoRecoveryKey(msgHash, signature, publicKey);
+        byte[] pub = compressed ? decompressPublicKey(publicKey) : publicKey;
+
+        ECDSASigner signer = new ECDSASigner();
+        ECPublicKeyParameters params = new ECPublicKeyParameters(curve.getCurve().decodePoint(pub), domain);
+        signer.init(false, params);
+
+        BigInteger r = new BigInteger(1, signature.getR());
+        BigInteger s = new BigInteger(1, signature.getS());
+
+        return signer.verifySignature(msgHash, r, s);
     }
 
     /**
@@ -120,28 +132,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
         System.arraycopy(signature, 0, r, 0, r.length);
         System.arraycopy(signature, r.length, s, 0, s.length);
 
-        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
-        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
-    }
-
-    private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
-        byte[] r = signatureData.getR();
-        byte[] s = signatureData.getS();
-
-        // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
-        // after decompressing the key this header byte is omitted, thus resulting in failing verification
-        byte[] publicKeyLeadingZero = new byte[65];
-        publicKeyLeadingZero[0] = (byte) 0;
-        System.arraycopy(publicKey, 0, publicKeyLeadingZero, 1, 64);
-
-        for (int i = 0; i < 4; i++) {
-            BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);
-            byte[] k = (potentialKey != null) ? potentialKey.toByteArray() : null;
-            if (k != null && (Arrays.equals(publicKey, k) || Arrays.equals(publicKeyLeadingZero, k))) {
-                return true;
-            }
-        }
-        return false;
+        return verify(msgHash, new ECDSASignature(r, s), publicKey);
     }
 
     private byte[] compressPublicKey(byte[] publicKey) {
@@ -156,5 +147,17 @@ public class ECDSA extends ECDSARecovery implements Signer {
             y = new BigInteger(1, Arrays.copyOfRange(publicKey, 32, 64));
         }
         return this.curve.getCurve().createPoint(x, y).getEncoded(true);
+    }
+
+    private byte[] decompressPublicKey(byte[] publicKey) {
+        ECPoint point = curve.getCurve().decodePoint(publicKey);
+        byte[] x = point.getXCoord().getEncoded();
+        byte[] y = point.getYCoord().getEncoded();
+
+        byte[] decomp = new byte[64];
+        System.arraycopy(x, 0, decomp, 0, x.length);
+        System.arraycopy(y, 0, decomp, x.length, y.length);
+
+        return decomp;
     }
 }
