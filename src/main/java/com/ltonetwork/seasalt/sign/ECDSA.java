@@ -5,6 +5,7 @@ import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 
@@ -94,6 +95,36 @@ public class ECDSA extends ECDSARecovery implements Signer {
         return new ECDSASignature(rArr, sArr);
     }
 
+//    /**
+//     * Verify signature using ECDSASignature structure for the signature.
+//     *
+//     * @param msgHash   hash of the data that was signed
+//     * @param signature the message signature components
+//     * @param publicKey the public key to be used to verify
+//     * @return true if the signature is valid, false otherwise
+//     */
+//    public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
+//        return verifyNoRecoveryKey(msgHash, signature, publicKey);
+//    }
+//
+//    /**
+//     * Verify signature using byte array representation of the signature.
+//     *
+//     * @param msgHash   hash of the data that was signed
+//     * @param signature the message signature components
+//     * @param publicKey the public key to be used to verify
+//     * @return true if the signature is valid, false otherwise
+//     */
+//    public boolean verify(byte[] msgHash, byte[] signature, byte[] publicKey) {
+//        byte[] r = new byte[32];
+//        byte[] s = new byte[32];
+//        System.arraycopy(signature, 0, r, 0, r.length);
+//        System.arraycopy(signature, r.length, s, 0, s.length);
+//
+//        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
+//        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
+//    }
+
     /**
      * Verify signature using ECDSASignature structure for the signature.
      *
@@ -103,7 +134,16 @@ public class ECDSA extends ECDSARecovery implements Signer {
      * @return true if the signature is valid, false otherwise
      */
     public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        return verifyNoRecoveryKey(msgHash, signature, publicKey);
+        byte[] pub = compressed ? decompressPublicKey(publicKey) : publicKey;
+
+        ECDSASigner signer = new ECDSASigner();
+        ECPublicKeyParameters params = new ECPublicKeyParameters(curve.getCurve().decodePoint(pub), domain);
+        signer.init(false, params);
+
+        BigInteger r = new BigInteger(1, signature.getR());
+        BigInteger s = new BigInteger(1, signature.getS());
+
+        return signer.verifySignature(msgHash, r, s);
     }
 
     /**
@@ -120,8 +160,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
         System.arraycopy(signature, 0, r, 0, r.length);
         System.arraycopy(signature, r.length, s, 0, s.length);
 
-        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
-        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
+        return verify(msgHash, new ECDSASignature(r, s), publicKey);
     }
 
     private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
