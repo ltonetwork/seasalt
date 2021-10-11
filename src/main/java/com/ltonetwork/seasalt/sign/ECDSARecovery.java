@@ -3,6 +3,7 @@ package com.ltonetwork.seasalt.sign;
 import com.ltonetwork.seasalt.Binary;
 import com.ltonetwork.seasalt.KeyPair;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.asn1.x9.X9IntegerConverter;
 import org.bouncycastle.crypto.Digest;
@@ -14,15 +15,19 @@ import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.math.ec.ECAlgorithms;
+import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
-import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Locale;
 
 public class ECDSARecovery implements Signer {
     final X9ECParameters curve;
@@ -202,7 +207,7 @@ public class ECDSARecovery implements Signer {
         //        routine outputs "invalid", then do another iteration of Step 1.
         //
         // More concisely, what these points mean is to use X as a compressed public key.
-        BigInteger prime = SecP256K1Curve.q;
+        BigInteger prime = getPrime();
         if (x.compareTo(prime) >= 0) {
             // Cannot have point co-ordinates larger than this as everything takes place modulo Q.
             return null;
@@ -267,6 +272,7 @@ public class ECDSARecovery implements Signer {
 
         int recId = header - 27;
         BigInteger key = recoverFromSignature(recId, new BigInteger(1, r), new BigInteger(1, s), msgHash);
+        System.out.println(key);
         if (key == null) {
             throw new IllegalArgumentException("Could not recover public key from signature");
         }
@@ -284,7 +290,7 @@ public class ECDSARecovery implements Signer {
         KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256k1");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(deriveCurveName(this.domain));
             keyPairGenerator.initialize(ecGenParameterSpec, seed);
             java.security.KeyPair javaKeyPair = keyPairGenerator.generateKeyPair();
             BigInteger[] decodedASN1Keys = decodeASN1KeyPair(javaKeyPair);
@@ -360,4 +366,53 @@ public class ECDSARecovery implements Signer {
 
         return decomp;
     }
+
+    private BigInteger getPrime() {
+        String curveName = deriveCurveName(this.domain);
+        String pckg = "org.bouncycastle.math.ec.custom.sec";
+        // Get the package name of the curve class, i.e.: org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
+        String fullQualifiedName = pckg + ".Sec" + curveName.substring(3).toUpperCase(Locale.ROOT) + "Curve";
+        try{
+            Class<?> cls = Class.forName(fullQualifiedName);
+            ECCurve.AbstractFp abstractFp = (ECCurve.AbstractFp) cls.getDeclaredConstructor().newInstance();
+            return abstractFp.getField().getCharacteristic();
+        }
+        catch(ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Unknown curve " + curveName);
+        }
+
+    }
+
+    private String deriveCurveName(ECDomainParameters ecDomainParameters) {
+        ECParameterSpec ecParameterSpec = new ECParameterSpec(
+                ecDomainParameters.getCurve(),
+                ecDomainParameters.getG(),
+                ecDomainParameters.getN(),
+                ecDomainParameters.getH(),
+                ecDomainParameters.getSeed()
+        );
+        for (@SuppressWarnings("rawtypes")
+             Enumeration names = ECNamedCurveTable.getNames(); names.hasMoreElements();){
+            final String name = (String)names.nextElement();
+
+            final X9ECParameters params = ECNamedCurveTable.getByName(name);
+
+            if (params.getN().equals(ecParameterSpec.getN())
+                    && params.getH().equals(ecParameterSpec.getH())
+                    && params.getCurve().equals(ecParameterSpec.getCurve())
+                    && params.getG().equals(ecParameterSpec.getG())){
+                return ansiToSecg(name);
+            }
+        }
+
+        throw new IllegalArgumentException("Could not find name for curve");
+    }
+
+    private String ansiToSecg(String ansi) {
+        if(ansi.equals("prime192v1")) return "secp192r1";
+        else if(ansi.equals("prime256v1")) return "secp256r1";
+        else return ansi;
+    }
+
+
 }

@@ -137,6 +137,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
         for (int i = 0; i < 4; i++) {
             BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);
             byte[] k = (potentialKey != null) ? potentialKey.toByteArray() : null;
+            if(potentialKey != null) System.out.println(new Binary(potentialKey.toByteArray()).getHex());
             if (k != null && (Arrays.equals(publicKey, k) || Arrays.equals(publicKeyLeadingZero, k))) {
                 return true;
             }
