@@ -267,7 +267,6 @@ public class ECDSARecovery implements Signer {
 
         int recId = header - 27;
         BigInteger key = recoverFromSignature(recId, signatureData.getR(), signatureData.getS(), msgHash);
-        System.out.println(key);
         if (key == null) {
             throw new IllegalArgumentException("Could not recover public key from signature");
         }

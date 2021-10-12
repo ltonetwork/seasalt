@@ -68,7 +68,6 @@ public class Utils{
 
     public static byte[] toBytesPadded(BigInteger value) {
         int length = value.toByteArray().length;
-        System.out.println(length);
 
         if(length % 2 == 0) return toBytesPadded(value, length);
         else return toBytesPadded(value, length - 1);

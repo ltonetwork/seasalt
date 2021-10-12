@@ -93,10 +93,6 @@ public class ECDSASecp256r1Test {
             byte[] msg = new byte[64];
             rd.nextBytes(msg);
             ECDSASignature sig = secp256r1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
-            System.out.println("SK " + kp.getPrivateKey().getBytes().length + "b: " + kp.getPrivateKey().getHex());
-            System.out.println("PK " + kp.getPublicKey().getBytes().length + "b: "  + kp.getPublicKey().getHex());
-            System.out.println("SIG " + sig.getBytes().length + "b: " + sig.getHex());
-            System.out.println("-----------------");
 
             Assertions.assertTrue(secp256r1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
         }

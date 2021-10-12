@@ -1,7 +1,6 @@
 package com.ltonetwork.seasalt.sign;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class ECDSASignature extends Signature {
     private byte[] v;
