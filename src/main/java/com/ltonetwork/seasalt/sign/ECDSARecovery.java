@@ -104,7 +104,7 @@ public class ECDSARecovery implements Signer {
         byte[] sArr = Utils.toBytesPadded(s, 32);
         byte[] vArr = new byte[]{(byte) headerByte};
 
-        return new ECDSASignature(rArr, sArr, vArr);
+        return new ECDSASignature(r, s, vArr);
     }
 
     /**
@@ -135,7 +135,7 @@ public class ECDSARecovery implements Signer {
         System.arraycopy(signature, v.length, r, 0, r.length);
         System.arraycopy(signature, (r.length + v.length), s, 0, s.length);
 
-        return verifyRecoveryKey(msgHash, new ECDSASignature(r, s, v), publicKey);
+        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v), publicKey);
     }
 
     /**
@@ -258,11 +258,6 @@ public class ECDSARecovery implements Signer {
      */
     private BigInteger signedMessageToKey(byte[] msgHash, ECDSASignature signatureData) {
 
-        byte[] r = signatureData.getR();
-        byte[] s = signatureData.getS();
-        assert signatureData.getR().length == 32;
-        assert signatureData.getS().length == 32;
-
         int header = signatureData.getV()[0] & 0xFF;
         // The header byte: 0x1B = first key with even y, 0x1C = first key with odd y,
         //                  0x1D = second key with even y, 0x1E = second key with odd y
@@ -271,7 +266,7 @@ public class ECDSARecovery implements Signer {
         }
 
         int recId = header - 27;
-        BigInteger key = recoverFromSignature(recId, new BigInteger(1, r), new BigInteger(1, s), msgHash);
+        BigInteger key = recoverFromSignature(recId, signatureData.getR(), signatureData.getS(), msgHash);
         System.out.println(key);
         if (key == null) {
             throw new IllegalArgumentException("Could not recover public key from signature");

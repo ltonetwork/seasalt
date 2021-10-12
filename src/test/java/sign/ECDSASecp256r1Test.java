@@ -65,7 +65,7 @@ public class ECDSASecp256r1Test {
     public void testKeyPairCompression() {
         KeyPair myKeyPair = secp256r1.keyPair();
 
-        Assertions.assertTrue(myKeyPair.getPublicKey().getBytes().length == 33);
+        Assertions.assertEquals(65, myKeyPair.getPublicKey().getBytes().length);
 
         ECDSA secp256k1Uncomp = new ECDSA(SECNamedCurves.getByName("secp256k1"), false);
         KeyPair myKeyPairUncomp = secp256k1Uncomp.keyPair();
@@ -92,21 +92,14 @@ public class ECDSASecp256r1Test {
         for (int i = 0; i < 50; i++) {
             byte[] msg = new byte[64];
             rd.nextBytes(msg);
-            Signature sig = secp256r1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
+            ECDSASignature sig = secp256r1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
+            System.out.println("SK " + kp.getPrivateKey().getBytes().length + "b: " + kp.getPrivateKey().getHex());
+            System.out.println("PK " + kp.getPublicKey().getBytes().length + "b: "  + kp.getPublicKey().getHex());
+            System.out.println("SIG " + sig.getBytes().length + "b: " + sig.getHex());
+            System.out.println("-----------------");
 
             Assertions.assertTrue(secp256r1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
         }
-    }
-
-    @Test
-    public void testVerifyDifferentKp() {
-        ECDSARecovery secp256k1Recovery = new ECDSARecovery(SECNamedCurves.getByName("secp256k1"));
-        KeyPair kpRecovery = secp256k1Recovery.keyPair();
-
-        byte[] msg = SHA256.hash("test").getBytes();
-        ECDSASignature sig = secp256r1.signDetached(msg, kpRecovery.getPrivateKey().getBytes());
-
-        Assertions.assertTrue(secp256r1.verify(msg, sig, kpRecovery.getPublicKey().getBytes()));
     }
 
     @Test
@@ -116,72 +109,5 @@ public class ECDSASecp256r1Test {
         Signature sig = secp256r1.signDetached(msg, kp.getPrivateKey().getBytes());
 
         Assertions.assertFalse(secp256r1.verify("fail".getBytes(StandardCharsets.UTF_8), sig, kp));
-    }
-
-    @Test
-    public void testSignWithJWT() throws Exception {
-        byte[] msg = SHA256.hash("test").getBytes();
-
-        // Generate an EC key pair
-        ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1)
-                .keyID("123")
-                .generate();
-        ECKey ecPublicJWK = ecJWK.toPublicJWK();
-
-        // Create the EC signer
-        JWSSigner signer = new ECDSASigner(ecJWK);
-
-        // Creates the JWS object with payload
-        JWSObject jwsObject = new JWSObject(
-                new JWSHeader.Builder(JWSAlgorithm.ES256K).keyID(ecJWK.getKeyID()).build(),
-                new Payload(msg));
-
-        // Compute the EC signature
-        jwsObject.sign(signer);
-
-        // The recipient creates a verifier with the public EC key
-        JWSVerifier verifier = new ECDSAVerifier(ecPublicJWK);
-
-        // Verify the EC signature
-        Assertions.assertTrue(jwsObject.verify(verifier));
-        Assertions.assertArrayEquals(msg, jwsObject.getPayload().toBytes());
-
-
-        // Seasalt
-        byte[] realMsg = jwsObject.getSigningInput();
-        byte[] realMsgHashed = SHA256.hash(realMsg).getBytes();
-        KeyPair seasaltKP = secp256r1.keyPairFromSecretKey(ecJWK.getD().decode());
-        Assertions.assertTrue(secp256r1.verify(realMsgHashed, jwsObject.getSignature().decode(), seasaltKP));
-    }
-
-    @Test
-    public void testSignWithJavaSecurity() throws Exception {
-        final String SPEC = "secp256k1";
-        final String ALGO = "SHA256withECDSA";
-
-        ECGenParameterSpec ecSpec = new ECGenParameterSpec(SPEC);
-        KeyPairGenerator g = KeyPairGenerator.getInstance("EC");
-        g.initialize(ecSpec, new SecureRandom());
-        java.security.KeyPair keypair = g.generateKeyPair();
-        ECPublicKey publicKey = (ECPublicKey) keypair.getPublic();
-        ECPrivateKey privateKey = (ECPrivateKey) keypair.getPrivate();
-
-        byte[] msg = "test".getBytes();
-        byte[] msgHashed = SHA256.hash(msg).getBytes();
-
-        java.security.Signature ecdsa = java.security.Signature.getInstance(ALGO);
-        ecdsa.initSign(privateKey);
-        ecdsa.update(msg);
-        byte[] signature = ecdsa.sign();
-
-        ecdsa.initVerify(publicKey);
-        ecdsa.update(msg);
-        boolean result = ecdsa.verify(signature);
-        Assertions.assertTrue(result);
-
-        // Seasalt
-        KeyPair seasaltKp = secp256r1.keyPairFromSecretKey(privateKey.getS().toByteArray());
-        byte[] rsSignature = Utils.derToRS(signature);
-        Assertions.assertTrue(secp256r1.verify(msgHashed, rsSignature, seasaltKp));
     }
 }

@@ -93,7 +93,7 @@ public class ECDSARecoverySecp256k1Test {
 
     @Test
     public void testVerifyDifferentKp() {
-        ECDSARecovery secp256k1NoRecovery = new ECDSA(SECNamedCurves.getByName("secp256k1"));
+        ECDSA secp256k1NoRecovery = new ECDSA(SECNamedCurves.getByName("secp256k1"));
         KeyPair kpRecovery = secp256k1NoRecovery.keyPair();
 
         byte[] msgHash = Keccak256.hash("test").getBytes();
@@ -123,7 +123,7 @@ public class ECDSARecoverySecp256k1Test {
         KeyPair kpSeaSalt = secp256k1.keyPair();
         ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
 
-        Sign.SignatureData sigWeb3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR(), sigSeaSalt.getS());
+        Sign.SignatureData sigWeb3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR().toByteArray(), sigSeaSalt.getS().toByteArray());
         BigInteger recoveredWeb3 = Sign.signedMessageHashToKey(msgHash, sigWeb3);
         Assertions.assertArrayEquals(kpSeaSalt.getPublicKey().getBytes(), recoveredWeb3.toByteArray());
     }
@@ -137,7 +137,7 @@ public class ECDSARecoverySecp256k1Test {
         ECKeyPair kpWeb3 = Keys.createEcKeyPair();
         Sign.SignatureData sigWeb3 = Sign.signMessage(msgHash, kpWeb3, false);
 
-        ECDSASignature sigSeaSalt = new ECDSASignature(sigWeb3.getR(), sigWeb3.getS(), sigWeb3.getV());
+        ECDSASignature sigSeaSalt = new ECDSASignature(new BigInteger(sigWeb3.getR()), new BigInteger(sigWeb3.getS()), sigWeb3.getV());
 
         Assertions.assertTrue(secp256k1.verify(msgHash, sigSeaSalt, kpWeb3.getPublicKey().toByteArray()));
     }
@@ -160,7 +160,7 @@ public class ECDSARecoverySecp256k1Test {
         KeyPair kpSeaSalt = secp256k1.keyPairFromSecretKey(kpWeb3.getPrivateKey().toByteArray());
         ECDSASignature sigSeaSalt = secp256k1.signDetached(msgHash, kpSeaSalt.getPrivateKey().getBytes());
 
-        Sign.SignatureData sig2Web3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR(), sigSeaSalt.getS());
+        Sign.SignatureData sig2Web3 = new Sign.SignatureData(sigSeaSalt.getV(), sigSeaSalt.getR().toByteArray(), sigSeaSalt.getS().toByteArray());
         BigInteger recoveredSeaSalt = Sign.signedMessageHashToKey(msgHash, sig2Web3);
 
         Assertions.assertArrayEquals(kpSeaSalt.getPublicKey().getBytes(), recoveredSeaSalt.toByteArray());
