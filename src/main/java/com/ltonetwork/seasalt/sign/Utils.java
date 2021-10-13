@@ -66,13 +66,6 @@ public class Utils{
         return result;
     }
 
-    public static byte[] toBytesPadded(BigInteger value) {
-        int length = value.toByteArray().length;
-
-        if(length % 2 == 0) return toBytesPadded(value, length);
-        else return toBytesPadded(value, length - 1);
-    }
-
     /**
      * @return true if the S component is "low", that means it is below
      * HALF_CURVE_ORDER. See <a

@@ -1,27 +1,41 @@
 package com.ltonetwork.seasalt.sign;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class ECDSASignature extends Signature {
     private byte[] v;
     private final BigInteger r;
     private final BigInteger s;
 
-    public ECDSASignature(BigInteger r, BigInteger s, byte[] v) {
-        super(concatenateToSignature(v, Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
+    public ECDSASignature(BigInteger r, BigInteger s, byte[] v, int sigLen) {
+        //sigLen - 1 as the recovery bit is an addition to the original signature
+        super(concatenateToSignature(v, Utils.toBytesPadded(r, (sigLen-1)/2), Utils.toBytesPadded(s, (sigLen-1)/2)));
         this.v = v.clone();
         this.r = r;
         this.s = s;
     }
 
+    public ECDSASignature(BigInteger r, BigInteger s, byte[] v) {
+        this(r, s, v, 65);
+    }
+
+    public ECDSASignature(BigInteger r, BigInteger s, byte v, int sigLen) {
+        this(r, s, new byte[]{v}, sigLen);
+    }
+
     public ECDSASignature(BigInteger r, BigInteger s, byte v) {
-        this(r, s, new byte[]{v});
+        this(r, s, new byte[]{v}, 65);
+    }
+
+    public ECDSASignature(BigInteger r, BigInteger s, int sigLen) {
+        super(concatenateToSignature(Utils.toBytesPadded(r, sigLen/2), Utils.toBytesPadded(s, sigLen/2)));
+        this.r = r;
+        this.s = s;
     }
 
     public ECDSASignature(BigInteger r, BigInteger s) {
-        super(concatenateToSignature(Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
-        this.r = r;
-        this.s = s;
+        this(r, s, 64);
     }
 
     public ECDSASignature(byte[] signature) {
