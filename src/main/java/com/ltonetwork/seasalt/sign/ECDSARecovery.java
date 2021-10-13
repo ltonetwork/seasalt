@@ -34,12 +34,14 @@ public class ECDSARecovery implements Signer {
     final ECDomainParameters domain;
     final BigInteger HALF_CURVE_ORDER;
     final Digest digest;
+    final int sigLen;
 
     public ECDSARecovery(X9ECParameters curve, Digest digest) {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
         this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
         this.digest = digest;
+        this.sigLen = curve.getCurve().getFieldSize()/8*2;
 
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
@@ -104,7 +106,7 @@ public class ECDSARecovery implements Signer {
         byte[] sArr = Utils.toBytesPadded(s, 32);
         byte[] vArr = new byte[]{(byte) headerByte};
 
-        return new ECDSASignature(r, s, vArr);
+        return new ECDSASignature(r, s, vArr, sigLen);
     }
 
     /**
@@ -135,7 +137,7 @@ public class ECDSARecovery implements Signer {
         System.arraycopy(signature, v.length, r, 0, r.length);
         System.arraycopy(signature, (r.length + v.length), s, 0, s.length);
 
-        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v), publicKey);
+        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v, sigLen), publicKey);
     }
 
     /**
