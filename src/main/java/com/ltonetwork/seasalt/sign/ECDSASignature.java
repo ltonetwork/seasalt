@@ -25,11 +25,16 @@ public class ECDSASignature extends Signature {
         super(signature);
 
         int n = signature.length;
-        byte[] r = new byte[(n + 1)/2];
-        byte[] s = new byte[n - r.length];
+        byte[] r = new byte[n/2];
+        byte[] s = new byte[n/2];
 
-        System.arraycopy(signature, 0, r, 0, r.length);
-        System.arraycopy(signature, r.length, s, 0, s.length);
+        if(includesRecoveryKey) {
+            System.arraycopy(signature, 1, r, 0, r.length);
+            System.arraycopy(signature, r.length + 1, s, 0, s.length);
+        } else {
+            System.arraycopy(signature, 0, r, 0, r.length);
+            System.arraycopy(signature, r.length, s, 0, s.length);
+        }
 
         this.r = new BigInteger(1, r);
         this.s = new BigInteger(1, s);

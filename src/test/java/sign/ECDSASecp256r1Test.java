@@ -85,7 +85,7 @@ public class ECDSASecp256r1Test {
 
             Assertions.assertEquals(64, sig.getBytes().length);
 
-            Assertions.assertTrue(secp256r1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
+            Assertions.assertTrue(secp256r1.verify(SHA256.hash(msg).getBytes(), sig.getBytes(), kp.getPublicKey().getBytes()));
         }
     }
 
