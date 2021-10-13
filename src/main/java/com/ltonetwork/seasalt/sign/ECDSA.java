@@ -22,14 +22,14 @@ public class ECDSA implements Signer {
 
     final X9ECParameters curve;
     final ECDomainParameters domain;
-    final BigInteger HALF_CURVE_ORDER;
+    final BigInteger halfCurveOrder;
     final Digest digest;
     boolean compressed;
 
     public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
-        this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
+        this.halfCurveOrder = curve.getN().shiftRight(1);
         this.digest = digest;
         this.compressed = compressed;
     }
