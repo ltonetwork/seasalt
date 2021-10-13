@@ -106,7 +106,7 @@ public class ECDSARecovery implements Signer {
         byte[] sArr = Utils.toBytesPadded(s, 32);
         byte[] vArr = new byte[]{(byte) headerByte};
 
-        return new ECDSASignature(r, s, vArr, sigLen);
+        return new ECDSASignature(r, s, vArr[0], sigLen);
     }
 
     /**
@@ -137,7 +137,7 @@ public class ECDSARecovery implements Signer {
         System.arraycopy(signature, v.length, r, 0, r.length);
         System.arraycopy(signature, (r.length + v.length), s, 0, s.length);
 
-        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v, sigLen), publicKey);
+        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v[0], sigLen), publicKey);
     }
 
     /**

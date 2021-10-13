@@ -137,7 +137,7 @@ public class ECDSARecoverySecp256k1Test {
         ECKeyPair kpWeb3 = Keys.createEcKeyPair();
         Sign.SignatureData sigWeb3 = Sign.signMessage(msgHash, kpWeb3, false);
 
-        ECDSASignature sigSeaSalt = new ECDSASignature(new BigInteger(sigWeb3.getR()), new BigInteger(sigWeb3.getS()), sigWeb3.getV(), 65);
+        ECDSASignature sigSeaSalt = new ECDSASignature(new BigInteger(sigWeb3.getR()), new BigInteger(sigWeb3.getS()), sigWeb3.getV()[0], 65);
 
         Assertions.assertTrue(secp256k1.verify(msgHash, sigSeaSalt, kpWeb3.getPublicKey().toByteArray()));
     }

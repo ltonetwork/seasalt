@@ -1,22 +1,14 @@
 package com.ltonetwork.seasalt.sign;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class ECDSASignature extends Signature {
     private byte[] v;
     private final BigInteger r;
     private final BigInteger s;
 
-    public ECDSASignature(BigInteger r, BigInteger s, byte[] v, int sigLen) {
-        //sigLen - 1 as the recovery bit is an addition to the original signature
-        super(concatenateToSignature(v, Utils.toBytesPadded(r, (sigLen-1)/2), Utils.toBytesPadded(s, (sigLen-1)/2)));
-        this.v = v.clone();
-        this.r = r;
-        this.s = s;
-    }
-
     public ECDSASignature(BigInteger r, BigInteger s, byte v, int sigLen) {
+        //sigLen - 1 as the recovery bit is an addition to the original signature
         super(concatenateToSignature(new byte[]{v}, Utils.toBytesPadded(r, (sigLen-1)/2), Utils.toBytesPadded(s, (sigLen-1)/2)));
         this.v = new byte[]{v};
         this.r = r;
