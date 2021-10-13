@@ -1,4 +1,4 @@
-package com.ltonetwork.seasalt.keypair;
+package com.ltonetwork.seasalt;
 
 import com.ltonetwork.seasalt.Binary;
 

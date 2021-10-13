@@ -1,32 +1,48 @@
 package com.ltonetwork.seasalt.sign;
 
+import java.math.BigInteger;
+
 public class ECDSASignature extends Signature {
     private byte[] v;
-    private final byte[] r;
-    private final byte[] s;
+    private final BigInteger r;
+    private final BigInteger s;
 
-    public ECDSASignature(byte[] r, byte[] s, byte[] v) {
-        super(concatenateToSignature(v, r, s));
+    public ECDSASignature(BigInteger r, BigInteger s, byte[] v) {
+        super(concatenateToSignature(v, Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
         this.v = v.clone();
-        this.r = r.clone();
-        this.s = s.clone();
+        this.r = r;
+        this.s = s;
     }
 
-    public ECDSASignature(byte[] r, byte[] s, byte v) {
+    public ECDSASignature(BigInteger r, BigInteger s, byte v) {
         this(r, s, new byte[]{v});
     }
 
-    public ECDSASignature(byte[] r, byte[] s) {
-        super(concatenateToSignature(r, s));
-        this.r = r.clone();
-        this.s = s.clone();
+    public ECDSASignature(BigInteger r, BigInteger s) {
+        super(concatenateToSignature(Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
+        this.r = r;
+        this.s = s;
     }
 
-    public byte[] getR() {
+    public ECDSASignature(byte[] signature) {
+        super(signature);
+
+        int n = signature.length;
+        byte[] r = new byte[(n + 1)/2];
+        byte[] s = new byte[n - r.length];
+
+        System.arraycopy(signature, 0, r, 0, r.length);
+        System.arraycopy(signature, r.length, s, 0, s.length);
+
+        this.r = new BigInteger(1, r);
+        this.s = new BigInteger(1, s);
+    }
+
+    public BigInteger getR() {
         return r;
     }
 
-    public byte[] getS() {
+    public BigInteger getS() {
         return s;
     }
 
@@ -35,11 +51,11 @@ public class ECDSASignature extends Signature {
     }
 
     public String toDER() {
-        String rHex = toHex(this.r);
-        String rLengthHex = toHex(new byte[]{(byte) this.r.length}); // 20
+        String rHex = toHex(this.r.toByteArray());
+        String rLengthHex = toHex(new byte[]{(byte) this.r.toByteArray().length}); // 20
 
-        String sHex = toHex(this.s);
-        String sLengthHex = toHex(new byte[]{(byte) this.s.length}); // 20
+        String sHex = toHex(this.s.toByteArray());
+        String sLengthHex = toHex(new byte[]{(byte) this.s.toByteArray().length}); // 20
 
         String asn1Integer = "02";
 
@@ -48,7 +64,7 @@ public class ECDSASignature extends Signature {
          * 2. one byte indicating the length of s (sLengthHex)
          * 3. two bytes (for r and s) indicating the following value as an integer (asn1Integer)
          */
-        int sigLen = this.s.length + this.r.length + 4;
+        int sigLen = this.s.toByteArray().length + this.r.toByteArray().length + 4;
         String sigLenHex = toHex(new byte[]{(byte) sigLen});
 
         String asn1Sequence = "30";

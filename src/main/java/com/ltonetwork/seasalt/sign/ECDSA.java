@@ -1,24 +1,36 @@
 package com.ltonetwork.seasalt.sign;
 
 import com.ltonetwork.seasalt.Binary;
-import com.ltonetwork.seasalt.keypair.ECDSAKeyPair;
-import com.ltonetwork.seasalt.keypair.ECDSAKeyType;
+import com.ltonetwork.seasalt.KeyPair;
+import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
-import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
-import java.util.Arrays;
+import java.security.SecureRandom;
 
-public class ECDSA extends ECDSARecovery implements Signer {
+public class ECDSA implements Signer {
 
-    final boolean compressed;
+    final X9ECParameters curve;
+    final ECDomainParameters domain;
+    final BigInteger halfCurveOrder;
+    final Digest digest;
+    boolean compressed;
 
     public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
-        super(curve, digest);
+        this.curve = curve;
+        this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
+        this.halfCurveOrder = curve.getN().shiftRight(1);
+        this.digest = digest;
         this.compressed = compressed;
     }
 
@@ -27,7 +39,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
     }
 
     public ECDSA(X9ECParameters curve, boolean compressed) {
-        super(curve);
+        this(curve, new SHA256Digest());
         this.compressed = compressed;
     }
 
@@ -36,7 +48,7 @@ public class ECDSA extends ECDSARecovery implements Signer {
     }
 
     public ECDSA(String curve, boolean compressed) {
-        super(curve);
+        this(SECNamedCurves.getByName(curve), new SHA256Digest());
         this.compressed = compressed;
     }
 
@@ -44,120 +56,81 @@ public class ECDSA extends ECDSARecovery implements Signer {
         this(curve, true);
     }
 
-    @Override
-    public ECDSAKeyPair keyPair() {
-        ECDSAKeyPair keypair = super.keyPair();
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPair() {
+        SecureRandom secureRandom = new SecureRandom();
+        return generateKeyPair(secureRandom);
     }
 
-    @Override
-    public ECDSAKeyPair keyPairFromSeed(byte[] seed) {
-        ECDSAKeyPair keypair = super.keyPairFromSeed(seed);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSeed(byte[] seed) {
+        SecureRandom secureRandom = new SecureRandom(seed);
+        return generateKeyPair(secureRandom);
     }
 
-    @Override
-    public ECDSAKeyPair keyPairFromSecretKey(byte[] privateKey) {
-        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSecretKey(byte[] privateKey) {
+        byte[] publicKey = publicKeyFromPrivateKey(privateKey);
+        return new KeyPair(publicKey, privateKey);
     }
 
-    @Override
-    public ECDSAKeyPair keyPairFromSecretKey(Binary privateKey) {
-        ECDSAKeyPair keypair = super.keyPairFromSecretKey(privateKey);
-        return new ECDSAKeyPair(
-                keypair.getPublicKey(),
-                ECPointNoHeader(keypair.getPrivateKey(), 32),
-                ECDSAKeyType.SECP256K1,
-                this.compressed
-        );
+    public KeyPair keyPairFromSecretKey(Binary privateKey) {
+        return keyPairFromSecretKey(privateKey.getBytes());
     }
 
-    private Binary ECPointNoHeader(Binary point, int targetLength) {
-        byte[] out = new byte[targetLength];
-        if(point.getBytes().length != targetLength) {
-            System.arraycopy(point.getBytes(), 1, out, 0, targetLength);
-            return new Binary(out);
-        }
-        else return point;
-    }
-
-    @Override
     public ECDSASignature signDetached(byte[] msg, byte[] privateKey) {
-        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(this.digest));
-        signer.init(true, new ECPrivateKeyParameters(new BigInteger(1, privateKey), domain));
-        BigInteger[] signature = signer.generateSignature(msg);
-
-        BigInteger r = signature[0];
-        BigInteger s = Utils.toCanonicalised(signature[1]);
-
-        byte[] rArr = Utils.toBytesPadded(r, 32);
-        byte[] sArr = Utils.toBytesPadded(s, 32);
-        return new ECDSASignature(rArr, sArr);
+        ECDSASigner signerPriv = new ECDSASigner();
+        signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
+        BigInteger[] signature = signerPriv.generateSignature(msg);
+        return new ECDSASignature(signature[0], signature[1]);
     }
 
-    /**
-     * Verify signature using ECDSASignature structure for the signature.
-     *
-     * @param msgHash   hash of the data that was signed
-     * @param signature the message signature components
-     * @param publicKey the public key to be used to verify
-     * @return true if the signature is valid, false otherwise
-     */
-    public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        return verifyNoRecoveryKey(msgHash, signature, publicKey);
+    public ECDSASignature signDetachedCanonical(byte[] msg, byte[] privateKey) {
+        ECDSASigner signerPriv = new ECDSASigner();
+        signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
+        BigInteger[] signature = signerPriv.generateSignature(msg);
+        return new ECDSASignature(signature[0], Utils.toCanonicalised(signature[1]));
     }
 
-    /**
-     * Verify signature using byte array representation of the signature.
-     *
-     * @param msgHash   hash of the data that was signed
-     * @param signature the message signature components
-     * @param publicKey the public key to be used to verify
-     * @return true if the signature is valid, false otherwise
-     */
-    public boolean verify(byte[] msgHash, byte[] signature, byte[] publicKey) {
-        byte[] r = new byte[32];
-        byte[] s = new byte[32];
-        System.arraycopy(signature, 0, r, 0, r.length);
-        System.arraycopy(signature, r.length, s, 0, s.length);
-
-        if(publicKey.length == 33) return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), decompressPublicKey(publicKey));
-        else return verifyNoRecoveryKey(msgHash, new ECDSASignature(r, s), publicKey);
+    public boolean verify(byte[] msg, ECDSASignature signature, byte[] publicKey) {
+        ECDSASigner signerPub = new ECDSASigner();
+        signerPub.init(false, BCPublicKeyFromBytes(publicKey));
+        return signerPub.verifySignature(msg, signature.getR(), signature.getS());
     }
 
-    private boolean verifyNoRecoveryKey(byte[] msgHash, ECDSASignature signatureData, byte[] publicKey) {
-        byte[] r = signatureData.getR();
-        byte[] s = signatureData.getS();
+    public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
+        return verify(msg, new ECDSASignature(signature), publicKey);
+    }
 
-        // Workaround: conversion from Big Integer to byte[] adds header 0 for the sign
-        // after decompressing the key this header byte is omitted, thus resulting in failing verification
-        byte[] publicKeyLeadingZero = new byte[65];
-        publicKeyLeadingZero[0] = (byte) 0;
-        System.arraycopy(publicKey, 0, publicKeyLeadingZero, 1, 64);
 
-        for (int i = 0; i < 4; i++) {
-            BigInteger potentialKey = recoverFromSignature(i, new BigInteger(1, r), new BigInteger(1, s), msgHash);
-            byte[] k = (potentialKey != null) ? potentialKey.toByteArray() : null;
-            if (k != null && (Arrays.equals(publicKey, k) || Arrays.equals(publicKeyLeadingZero, k))) {
-                return true;
-            }
-        }
-        return false;
+    private KeyPair generateKeyPair(SecureRandom secureRandom) {
+        ECKeyGenerationParameters keyParams = new ECKeyGenerationParameters(domain, secureRandom);
+
+        ECKeyPairGenerator generator = new ECKeyPairGenerator();
+        generator.init(keyParams);
+        AsymmetricCipherKeyPair keyPair = generator.generateKeyPair();
+
+        ECPrivateKeyParameters privateKey = (ECPrivateKeyParameters) keyPair.getPrivate();
+        ECPublicKeyParameters publicKey = (ECPublicKeyParameters) keyPair.getPublic();
+        byte[] sk = privateKey.getD().toByteArray();
+        byte[] pk = publicKey.getQ().getEncoded(compressed);
+
+        return new KeyPair(pk, sk);
+    }
+
+    private ECPrivateKeyParameters BCPrivateKeyFromBytes(byte[] privateKey) {
+        return new ECPrivateKeyParameters(new BigInteger(privateKey), this.domain);
+    }
+
+    private ECPublicKeyParameters BCPublicKeyFromBytes(byte[] publicKey) {
+        return new ECPublicKeyParameters(curve.getCurve().decodePoint(publicKey), this.domain);
+    }
+
+    private byte[] BCPublicKeyToBytes(ECPublicKeyParameters publicKey) {
+        return publicKey.getQ().getEncoded(compressed);
+    }
+
+    private byte[] publicKeyFromPrivateKey(byte[] privateKey) {
+        ECPrivateKeyParameters privateKeyBC = BCPrivateKeyFromBytes(privateKey);
+        ECPoint q = privateKeyBC.getParameters().getG().multiply(privateKeyBC.getD());
+        ECPublicKeyParameters publicKey = new ECPublicKeyParameters(q, this.domain);
+        return BCPublicKeyToBytes(publicKey);
     }
 }

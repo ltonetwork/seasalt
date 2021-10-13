@@ -49,7 +49,7 @@ public class Utils{
 
         int bytesLength;
         int srcOffset;
-        if (bytes[0] == 0) {
+        if (bytes[0] == 0 && bytes.length != length) {
             bytesLength = bytes.length - 1;
             srcOffset = 1;
         } else {
@@ -64,6 +64,13 @@ public class Utils{
         int destOffset = length - bytesLength;
         System.arraycopy(bytes, srcOffset, result, destOffset, bytesLength);
         return result;
+    }
+
+    public static byte[] toBytesPadded(BigInteger value) {
+        int length = value.toByteArray().length;
+
+        if(length % 2 == 0) return toBytesPadded(value, length);
+        else return toBytesPadded(value, length - 1);
     }
 
     /**
