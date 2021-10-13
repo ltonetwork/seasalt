@@ -34,12 +34,14 @@ public class ECDSARecovery implements Signer {
     final ECDomainParameters domain;
     final BigInteger HALF_CURVE_ORDER;
     final Digest digest;
+    final int sigLen;
 
     public ECDSARecovery(X9ECParameters curve, Digest digest) {
         this.curve = curve;
         this.domain = new ECDomainParameters(curve.getCurve(), curve.getG(), curve.getN(), curve.getH());
         this.HALF_CURVE_ORDER = curve.getN().shiftRight(1);
         this.digest = digest;
+        this.sigLen = curve.getCurve().getFieldSize()/8*2 + 1;
 
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
@@ -100,23 +102,7 @@ public class ECDSARecovery implements Signer {
         }
         int headerByte = recId + 27;
 
-        byte[] rArr = Utils.toBytesPadded(r, 32);
-        byte[] sArr = Utils.toBytesPadded(s, 32);
-        byte[] vArr = new byte[]{(byte) headerByte};
-
-        return new ECDSASignature(r, s, vArr);
-    }
-
-    /**
-     * Verify signature using ECDSASignature structure for the signature.
-     *
-     * @param msgHash   hash of the data that was signed
-     * @param signature the message signature components
-     * @param publicKey the public key to be used to verify
-     * @return true if the signature is valid, false otherwise
-     */
-    public boolean verify(byte[] msgHash, ECDSASignature signature, byte[] publicKey) {
-        return verifyRecoveryKey(msgHash, signature, publicKey);
+        return new ECDSASignature(r, s, (byte) headerByte, sigLen);
     }
 
     /**
@@ -128,14 +114,13 @@ public class ECDSARecovery implements Signer {
      * @return true if the signature is valid, false otherwise
      */
     public boolean verify(byte[] msgHash, byte[] signature, byte[] publicKey) {
-        byte[] v = new byte[1];
-        byte[] r = new byte[32];
-        byte[] s = new byte[32];
-        System.arraycopy(signature, 0, v, 0, v.length);
-        System.arraycopy(signature, v.length, r, 0, r.length);
-        System.arraycopy(signature, (r.length + v.length), s, 0, s.length);
+        byte v = signature[0];
+        byte[] r = new byte[(signature.length-1)/2 ];
+        byte[] s = new byte[(signature.length-1)/2 ];
+        System.arraycopy(signature, 1, r, 0, r.length);
+        System.arraycopy(signature, (1 + r.length), s, 0, s.length);
 
-        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(r), new BigInteger(s), v), publicKey);
+        return verifyRecoveryKey(msgHash, new ECDSASignature(new BigInteger(1, r), new BigInteger(1, s), v, sigLen), publicKey);
     }
 
     /**

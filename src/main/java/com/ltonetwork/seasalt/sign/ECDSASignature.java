@@ -7,35 +7,42 @@ public class ECDSASignature extends Signature {
     private final BigInteger r;
     private final BigInteger s;
 
-    public ECDSASignature(BigInteger r, BigInteger s, byte[] v) {
-        super(concatenateToSignature(v, Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
-        this.v = v.clone();
+    public ECDSASignature(BigInteger r, BigInteger s, byte v, int sigLen) {
+        //sigLen - 1 as the recovery bit is an addition to the original signature
+        super(concatenateToSignature(new byte[]{v}, Utils.toBytesPadded(r, (sigLen-1)/2), Utils.toBytesPadded(s, (sigLen-1)/2)));
+        this.v = new byte[]{v};
         this.r = r;
         this.s = s;
     }
 
-    public ECDSASignature(BigInteger r, BigInteger s, byte v) {
-        this(r, s, new byte[]{v});
-    }
-
-    public ECDSASignature(BigInteger r, BigInteger s) {
-        super(concatenateToSignature(Utils.toBytesPadded(r), Utils.toBytesPadded(s)));
+    public ECDSASignature(BigInteger r, BigInteger s, int sigLen) {
+        super(concatenateToSignature(Utils.toBytesPadded(r, sigLen/2), Utils.toBytesPadded(s, sigLen/2)));
         this.r = r;
         this.s = s;
     }
 
-    public ECDSASignature(byte[] signature) {
+    public ECDSASignature(byte[] signature, boolean includesRecoveryKey) {
         super(signature);
 
         int n = signature.length;
-        byte[] r = new byte[(n + 1)/2];
-        byte[] s = new byte[n - r.length];
+        byte[] r = new byte[n/2];
+        byte[] s = new byte[n/2];
 
-        System.arraycopy(signature, 0, r, 0, r.length);
-        System.arraycopy(signature, r.length, s, 0, s.length);
+        if(includesRecoveryKey) {
+            System.arraycopy(signature, 1, r, 0, r.length);
+            System.arraycopy(signature, r.length + 1, s, 0, s.length);
+        } else {
+            System.arraycopy(signature, 0, r, 0, r.length);
+            System.arraycopy(signature, r.length, s, 0, s.length);
+        }
 
         this.r = new BigInteger(1, r);
         this.s = new BigInteger(1, s);
+        if(includesRecoveryKey) this.v = new byte[]{signature[0]};
+    }
+
+    public ECDSASignature(byte[] signature) {
+        this(signature, false);
     }
 
     public BigInteger getR() {
@@ -51,11 +58,14 @@ public class ECDSASignature extends Signature {
     }
 
     public String toDER() {
-        String rHex = toHex(this.r.toByteArray());
-        String rLengthHex = toHex(new byte[]{(byte) this.r.toByteArray().length}); // 20
+        int sigLen = this.getBytes().length;
+        byte[] rBytes = Utils.toBytesPadded(r, sigLen/2);
+        byte[] sBytes = Utils.toBytesPadded(s, sigLen/2);
+        String rHex = toHex(rBytes);
+        String rLengthHex = toHex(new byte[]{(byte) rBytes.length}); // 20
 
-        String sHex = toHex(this.s.toByteArray());
-        String sLengthHex = toHex(new byte[]{(byte) this.s.toByteArray().length}); // 20
+        String sHex = toHex(sBytes);
+        String sLengthHex = toHex(new byte[]{(byte) sBytes.length}); // 20
 
         String asn1Integer = "02";
 
@@ -64,8 +74,8 @@ public class ECDSASignature extends Signature {
          * 2. one byte indicating the length of s (sLengthHex)
          * 3. two bytes (for r and s) indicating the following value as an integer (asn1Integer)
          */
-        int sigLen = this.s.toByteArray().length + this.r.toByteArray().length + 4;
-        String sigLenHex = toHex(new byte[]{(byte) sigLen});
+        int DERSigLen = sigLen + 4;
+        String sigLenHex = toHex(new byte[]{(byte) DERSigLen});
 
         String asn1Sequence = "30";
 

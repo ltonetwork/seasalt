@@ -3,12 +3,12 @@ package sign;
 import com.ltonetwork.seasalt.hash.SHA256;
 import com.ltonetwork.seasalt.KeyPair;
 import com.ltonetwork.seasalt.sign.*;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+//import com.nimbusds.jose.*;
+//import com.nimbusds.jose.crypto.ECDSASigner;
+//import com.nimbusds.jose.crypto.ECDSAVerifier;
+//import com.nimbusds.jose.jwk.Curve;
+//import com.nimbusds.jose.jwk.ECKey;
+//import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,14 +88,16 @@ public class ECDSASecp256k1Test {
 
     @Test
     public void testVerify() {
-        Random rd = new Random();
-        KeyPair kp = secp256k1.keyPair();
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 1000; i++) {
+            Random rd = new Random();
+            KeyPair kp = secp256k1.keyPair();
             byte[] msg = new byte[64];
             rd.nextBytes(msg);
             ECDSASignature sig = secp256k1.signDetached(SHA256.hash(msg).getBytes(), kp.getPrivateKey().getBytes());
 
-            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig, kp.getPublicKey().getBytes()));
+            Assertions.assertEquals(64, sig.getBytes().length);
+
+            Assertions.assertTrue(secp256k1.verify(SHA256.hash(msg).getBytes(), sig.getBytes(), kp.getPublicKey().getBytes()));
         }
     }
 

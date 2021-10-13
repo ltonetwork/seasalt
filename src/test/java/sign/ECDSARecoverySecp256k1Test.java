@@ -80,15 +80,17 @@ public class ECDSARecoverySecp256k1Test {
 
     @Test
     public void testVerify() {
-        byte[] b = new byte[20];
-        new Random().nextBytes(b);
-        byte[] msgHash = Keccak256.hash("test").getBytes();
+        for (int i = 0; i < 1000; i++) {
+            Random rd = new Random();
+            KeyPair kp = secp256k1.keyPair();
+            byte[] msg = new byte[64];
+            rd.nextBytes(msg);
+            byte[] msgHash = Keccak256.hash(msg).getBytes();
 
-        KeyPair kp = secp256k1.keyPair();
+            ECDSASignature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
 
-        ECDSASignature sig = secp256k1.signDetached(msgHash, kp.getPrivateKey().getBytes());
-
-        Assertions.assertTrue(secp256k1.verify(msgHash, sig, kp));
+            Assertions.assertTrue(secp256k1.verify(msgHash, sig, kp));
+        }
     }
 
     @Test
@@ -137,7 +139,7 @@ public class ECDSARecoverySecp256k1Test {
         ECKeyPair kpWeb3 = Keys.createEcKeyPair();
         Sign.SignatureData sigWeb3 = Sign.signMessage(msgHash, kpWeb3, false);
 
-        ECDSASignature sigSeaSalt = new ECDSASignature(new BigInteger(sigWeb3.getR()), new BigInteger(sigWeb3.getS()), sigWeb3.getV());
+        ECDSASignature sigSeaSalt = new ECDSASignature(new BigInteger(sigWeb3.getR()), new BigInteger(sigWeb3.getS()), sigWeb3.getV()[0], 65);
 
         Assertions.assertTrue(secp256k1.verify(msgHash, sigSeaSalt, kpWeb3.getPublicKey().toByteArray()));
     }

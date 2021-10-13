@@ -24,6 +24,7 @@ public class ECDSA implements Signer {
     final ECDomainParameters domain;
     final BigInteger halfCurveOrder;
     final Digest digest;
+    final int sigLen;
     boolean compressed;
 
     public ECDSA(X9ECParameters curve, Digest digest, boolean compressed) {
@@ -32,6 +33,8 @@ public class ECDSA implements Signer {
         this.halfCurveOrder = curve.getN().shiftRight(1);
         this.digest = digest;
         this.compressed = compressed;
+        // X bits/8=Y bytes per signature element, signature is composed by r and s elements => *2
+        this.sigLen = curve.getCurve().getFieldSize()/8*2;
     }
 
     public ECDSA(X9ECParameters curve, Digest digest) {
@@ -79,14 +82,14 @@ public class ECDSA implements Signer {
         ECDSASigner signerPriv = new ECDSASigner();
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
         BigInteger[] signature = signerPriv.generateSignature(msg);
-        return new ECDSASignature(signature[0], signature[1]);
+        return new ECDSASignature(signature[0], signature[1], sigLen);
     }
 
     public ECDSASignature signDetachedCanonical(byte[] msg, byte[] privateKey) {
         ECDSASigner signerPriv = new ECDSASigner();
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
         BigInteger[] signature = signerPriv.generateSignature(msg);
-        return new ECDSASignature(signature[0], Utils.toCanonicalised(signature[1]));
+        return new ECDSASignature(signature[0], Utils.toCanonicalised(signature[1]), sigLen);
     }
 
     public boolean verify(byte[] msg, ECDSASignature signature, byte[] publicKey) {
