@@ -37,7 +37,9 @@ public class ECDSASecp256k1Test {
         KeyPair myKeyPair = secp256k1.keyPair();
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
+        Assertions.assertEquals(32, myKeyPair.getPrivateKey().getBytes().length);
         Assertions.assertNotNull(myKeyPair.getPublicKey());
+        Assertions.assertEquals(33, myKeyPair.getPublicKey().getBytes().length);
     }
 
     @Test
