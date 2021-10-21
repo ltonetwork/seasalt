@@ -37,7 +37,9 @@ public class ECDSASecp256k1Test {
         KeyPair myKeyPair = secp256k1.keyPair();
 
         Assertions.assertNotNull(myKeyPair.getPrivateKey());
+        Assertions.assertEquals(32, myKeyPair.getPrivateKey().getBytes().length);
         Assertions.assertNotNull(myKeyPair.getPublicKey());
+        Assertions.assertEquals(33, myKeyPair.getPublicKey().getBytes().length);
     }
 
     @Test
@@ -159,7 +161,6 @@ public class ECDSASecp256k1Test {
         ECPrivateKey privateKey = (ECPrivateKey) keypair.getPrivate();
 
         byte[] msg = "test".getBytes();
-        byte[] msgHashed = SHA256.hash(msg).getBytes();
 
         java.security.Signature ecdsa = java.security.Signature.getInstance(ALGO);
         ecdsa.initSign(privateKey);
@@ -174,6 +175,6 @@ public class ECDSASecp256k1Test {
         // Seasalt
         KeyPair seasaltKp = secp256k1.keyPairFromSecretKey(privateKey.getS().toByteArray());
         byte[] rsSignature = Utils.derToRS(signature);
-        Assertions.assertTrue(secp256k1.verify(msgHashed, rsSignature, seasaltKp));
+        Assertions.assertTrue(secp256k1.verify(msg, rsSignature, seasaltKp));
     }
 }
