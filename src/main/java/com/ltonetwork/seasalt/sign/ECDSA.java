@@ -81,7 +81,7 @@ public class ECDSA implements Signer {
 
     public ECDSASignature signDetached(byte[] msg, byte[] privateKey) {
         privateKey = addLeadingZero(privateKey);
-        ECDSASigner signerPriv = new ECDSASigner(new HMacDSAKCalculator(digest));
+        ECDSASigner signerPriv = new ECDSASigner();
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
         byte[] hashedMessage = hashMessage(msg);
         BigInteger[] signature = signerPriv.generateSignature(hashedMessage);
@@ -89,7 +89,7 @@ public class ECDSA implements Signer {
     }
 
     public ECDSASignature signDetachedCanonical(byte[] msg, byte[] privateKey) {
-        ECDSASigner signerPriv = new ECDSASigner(new HMacDSAKCalculator(digest));
+        ECDSASigner signerPriv = new ECDSASigner();
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
         byte[] hashedMessage = hashMessage(msg);
         BigInteger[] signature = signerPriv.generateSignature(hashedMessage);
@@ -97,7 +97,7 @@ public class ECDSA implements Signer {
     }
 
     public boolean verify(byte[] msg, ECDSASignature signature, byte[] publicKey) {
-        ECDSASigner signerPub = new ECDSASigner(new HMacDSAKCalculator(digest));
+        ECDSASigner signerPub = new ECDSASigner();
         signerPub.init(false, BCPublicKeyFromBytes(publicKey));
         byte[] hashedMessage = hashMessage(msg);
         return signerPub.verifySignature(hashedMessage, signature.getR(), signature.getS());
