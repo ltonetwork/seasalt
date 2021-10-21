@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
@@ -79,23 +80,27 @@ public class ECDSA implements Signer {
     }
 
     public ECDSASignature signDetached(byte[] msg, byte[] privateKey) {
-        ECDSASigner signerPriv = new ECDSASigner();
+        privateKey = addLeadingZero(privateKey);
+        ECDSASigner signerPriv = new ECDSASigner(new HMacDSAKCalculator(digest));
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
-        BigInteger[] signature = signerPriv.generateSignature(msg);
+        byte[] hashedMessage = hashMessage(msg);
+        BigInteger[] signature = signerPriv.generateSignature(hashedMessage);
         return new ECDSASignature(signature[0], signature[1], sigLen);
     }
 
     public ECDSASignature signDetachedCanonical(byte[] msg, byte[] privateKey) {
-        ECDSASigner signerPriv = new ECDSASigner();
+        ECDSASigner signerPriv = new ECDSASigner(new HMacDSAKCalculator(digest));
         signerPriv.init(true, BCPrivateKeyFromBytes(privateKey));
-        BigInteger[] signature = signerPriv.generateSignature(msg);
+        byte[] hashedMessage = hashMessage(msg);
+        BigInteger[] signature = signerPriv.generateSignature(hashedMessage);
         return new ECDSASignature(signature[0], Utils.toCanonicalised(signature[1]), sigLen);
     }
 
     public boolean verify(byte[] msg, ECDSASignature signature, byte[] publicKey) {
-        ECDSASigner signerPub = new ECDSASigner();
+        ECDSASigner signerPub = new ECDSASigner(new HMacDSAKCalculator(digest));
         signerPub.init(false, BCPublicKeyFromBytes(publicKey));
-        return signerPub.verifySignature(msg, signature.getR(), signature.getS());
+        byte[] hashedMessage = hashMessage(msg);
+        return signerPub.verifySignature(hashedMessage, signature.getR(), signature.getS());
     }
 
     public boolean verify(byte[] msg, byte[] signature, byte[] publicKey) {
@@ -115,7 +120,7 @@ public class ECDSA implements Signer {
         byte[] sk = privateKey.getD().toByteArray();
         byte[] pk = publicKey.getQ().getEncoded(compressed);
 
-        return new KeyPair(pk, sk);
+        return new KeyPair(pk, removeLeadingZero(sk));
     }
 
     private ECPrivateKeyParameters BCPrivateKeyFromBytes(byte[] privateKey) {
@@ -131,9 +136,37 @@ public class ECDSA implements Signer {
     }
 
     private byte[] publicKeyFromPrivateKey(byte[] privateKey) {
+        privateKey = addLeadingZero(privateKey);
         ECPrivateKeyParameters privateKeyBC = BCPrivateKeyFromBytes(privateKey);
         ECPoint q = privateKeyBC.getParameters().getG().multiply(privateKeyBC.getD());
         ECPublicKeyParameters publicKey = new ECPublicKeyParameters(q, this.domain);
         return BCPublicKeyToBytes(publicKey);
+    }
+
+    private byte[] addLeadingZero(byte[] privateKey) {
+        if(privateKey.length == sigLen/2) {
+            byte[] tmp = privateKey.clone();
+            privateKey = new byte[sigLen/2+1];
+            privateKey[0] = (byte) 0;
+            System.arraycopy(tmp, 0, privateKey, 1, 32);
+        }
+        return privateKey;
+    }
+
+    private byte[] removeLeadingZero(byte[] privateKey) {
+        if(privateKey.length == sigLen/2+1 && privateKey[0] == (byte) 0) {
+            byte[] tmp = privateKey.clone();
+            privateKey = new byte[sigLen/2];
+            System.arraycopy(tmp, 1, privateKey, 0, 32);
+        }
+        return privateKey;
+    }
+
+    private byte[] hashMessage(byte[] msg) {
+        digest.reset();
+        digest.update(msg, 0, msg.length);
+        byte[] result = new byte[digest.getDigestSize()];
+        digest.doFinal(result, 0);
+        return result;
     }
 }
