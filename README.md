@@ -62,7 +62,7 @@ Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eec
 to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
 to specify the hash algorithm, with default one being SHA-256.
 
-Signatures created from ECDSARecovery will **NOT** have attached `v` (recId) as a header byte to the signature.
+Signatures created from ECDSA will **NOT** have attached `v` (recId) as a header byte to the signature.
 
 ### Ed25519
 
