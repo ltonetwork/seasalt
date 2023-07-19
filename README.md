@@ -7,7 +7,7 @@ cryptography and hashing using [Bouncy Castle](https://www.bouncycastle.org/).
 	
 _Secret key cryptography is **not** supported. PRs to add secret key cryptography to this library will be accepted._
 
-## Public key signature algoritms
+## Public key signature algorithms
 
 - Ed25519
 - ECDSA
@@ -23,9 +23,30 @@ _Secret key cryptography is **not** supported. PRs to add secret key cryptograph
 - Blake2b (Blake2b-256, Blake2b-384, Blake2b-512)
 - Keccak (Keccak-256, Keccak-384, Keccak-512)
 
-# Usage
+# Public key signatures
 
-## Public key signatures
+## Implementations
+
+##### `ECDSARecovery(X9ECParameters|String curve, Digest digest = SHA256Digest())`
+
+Create an ECDSARecovery object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
+to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSARecovery will have attached `v` (recId) as a header byte to the signature.
+
+##### `ECDSA(X9ECParameters|String curve, Digest digest = SHA256Digest())`
+
+Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
+to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
+to specify the hash algorithm, with default one being SHA-256.
+
+Signatures created from ECDSA will **NOT** have attached `v` (recId) as a header byte to the signature.
+
+##### `Ed25519()`
+Create an Ed25519 object.
+
+## Methods
 
 ##### `KeyPair keyPair()`
 Create a random KeyPair.
@@ -46,30 +67,7 @@ _A `sign` method which prepends the message to the signature, compatible with
 [libsodium's combined mode](https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#combined-mode),
 is not yet supported._
 
-### ECDSARecovery
-
-##### `ECDSARecovery(X9ECParameters|String curve, Digest digest = SHA256Digest())`
-Create an ECDSARecovery object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
-to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
-to specify the hash algorithm, with default one being SHA-256.
-
-Signatures created from ECDSARecovery will have attached `v` (recId) as a header byte to the signature.
-
-### ECDSA extends ECDSARecovery
-
-##### `ECDSA(X9ECParameters|String curve, Digest digest = SHA256Digest())`
-Create an ECDSA object using [Bouncy Castle's X9ECParameters](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/asn1/x9/X9ECParameters.html) or a String
-to specify the curve and [Bouncy Castle's Digest](https://people.eecs.berkeley.edu/~jonah/bc/org/bouncycastle/crypto/Digest.html)
-to specify the hash algorithm, with default one being SHA-256.
-
-Signatures created from ECDSA will **NOT** have attached `v` (recId) as a header byte to the signature.
-
-### Ed25519
-
-##### `Ed25519()`
-Create an ed25519 object.
-
-### Example usages
+## Example usages
 
 Create an `ECDSARecovery` object, using `secp256k1` curve with default `Keccak-256` digest,
 hash a message, create a KeyPair, sign a message and verify it.
@@ -131,7 +129,7 @@ ECDSASignature mySignature = ed25519.signDetached(myMessage, myKeyPair);
 ed25519.verify(myMessage, mySignature, myKeyPair) // True
 ```
 
-## Hashing
+# Hashing
 
 ##### `Hasher(MessageDigest|String algorithm)`
 Create a Hasher object, using [Java's MessageDigest](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/MessageDigest.html) or using String to specify the algortihm.
@@ -139,7 +137,7 @@ Create a Hasher object, using [Java's MessageDigest](https://docs.oracle.com/en/
 ##### `Binary hash(byte[]|String msg)`
 Hash a byte array or a String.
 
-### Example usages
+## Example usages
 
 Create a `Hasher` object, using `SHA-256` algorithm, hash a message and encode it to hex.
 
@@ -156,9 +154,9 @@ Hasher keccak384 = new Hasher("Keccak-384");
 String myKeccak384Base58EncodedDigest = keccak384.hash("Hello").getBase58();
 ```
 
-## Helper Types
+# Helper Types
 
-### Binary
+## Binary
 
 ##### `Binary(byte[] bytes)`
 Create a Binary object, using byte array.
@@ -184,7 +182,7 @@ Get base58 encoded value of the Binary.
 ##### `String getBase64()`
 Get base64 encoded value of the Binary.
 
-### KeyPair
+## KeyPair
 
 ##### `KeyPair(byte[]|Binary publicKey, byte[]|Binary privateKey)`
 Create a KeyPair object, using a byte array or a Binary representation of the keys.
@@ -200,7 +198,7 @@ Get the private key.
 ##### `Signature(byte[] sig)`
 Create a Signature object, using a byte array.
 
-### ECDSASignature extends Signature
+## ECDSASignature extends Signature
 
 ##### `ECDSASignature(byte[] r, byte[] s, byte[]|byte v)`
 Create a ECDSASignature object, using byte arrays of the `r`, `s` and `v` components of the signatures.
