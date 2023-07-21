@@ -1,4 +1,4 @@
-![github-banner](https://user-images.githubusercontent.com/100821/122219870-25e0fd80-ceb0-11eb-8e51-906bbbb27c92.png)
+![LTO github readme](https://github.com/ltonetwork/seasalt/assets/100821/f1bedace-67cf-4b04-8a40-a9404d13e5bc)
 
 # SeaSalt
 
